@@ -5,7 +5,6 @@ import "@wokwi/elements";
 import { buildHex } from "./compile";
 import { AVRRunner } from "./execute";
 import { LEDElement } from "@wokwi/elements";
-import "./index.css";
 import {formatTime} from "./format-time";
 
 const BLINK_CODE = `
