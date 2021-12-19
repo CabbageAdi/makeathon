@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/MakeAThonSim.dir/main.cpp.o -o MakeAThonSim 

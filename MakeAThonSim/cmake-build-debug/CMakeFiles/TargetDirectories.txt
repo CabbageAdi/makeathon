@@ -1,3 +1,0 @@
-/F/Repositories/makeathon/MakeAThonSim/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/F/Repositories/makeathon/MakeAThonSim/cmake-build-debug/CMakeFiles/edit_cache.dir
-/F/Repositories/makeathon/MakeAThonSim/cmake-build-debug/CMakeFiles/MakeAThonSim.dir

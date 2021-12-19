@@ -1,4 +1,0 @@
-/home/adi/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/212.5457.51/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - Unix Makefiles" /F/Repositories/makeathon/MakeAThonSim
--- Configuring done
--- Generating done
--- Build files have been written to: /F/Repositories/makeathon/MakeAThonSim/cmake-build-debug
