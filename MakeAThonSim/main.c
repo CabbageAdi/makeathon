@@ -1,4 +1,6 @@
 #include "raylib.h"
+#include <math.h>
+
 
 //#define PLATFORM_WEB
 
@@ -20,8 +22,7 @@ void UpdateDrawFrame(void);     // Update and Draw one frame
 //----------------------------------------------------------------------------------
 // Main Enry Point
 //----------------------------------------------------------------------------------
-int main()
-{
+int main() {
     // Initialization
     //--------------------------------------------------------------------------------------
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
@@ -50,8 +51,7 @@ int main()
 //----------------------------------------------------------------------------------
 // Module Functions Definition
 //----------------------------------------------------------------------------------
-void UpdateDrawFrame(void)
-{
+void UpdateDrawFrame(void) {
     // Update
     //----------------------------------------------------------------------------------
     // TODO: Update your variables here
@@ -67,4 +67,9 @@ void UpdateDrawFrame(void)
 
     EndDrawing();
     //----------------------------------------------------------------------------------
+}
+
+
+int int_sqrt(int x) {
+    return sqrt(x);
 }
