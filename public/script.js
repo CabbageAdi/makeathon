@@ -1,31 +1,77 @@
-var statusElement = document.querySelector("#status"), progressElement = document.querySelector("#progress"),
-    spinnerElement = document.querySelector("#spinner"), Module = {
-        preRun: [], postRun: [], print: function () {
-            var e = document.querySelector("#output");
-            return e && (e.value = ""), function (t) {
-                arguments.length > 1 && (t = Array.prototype.slice.call(arguments).join(" ")), console.log(t), e && (e.value += t + "\n", e.scrollTop = e.scrollHeight)
+var statusElement = document.querySelector('#status');
+var progressElement = document.querySelector('#progress');
+var spinnerElement = document.querySelector('#spinner');
+var Module = {
+    preRun: [],
+    postRun: [],
+    print: (function() {
+        var element = document.querySelector('#output');
+
+        if (element) element.value = '';    // Clear browser cache
+
+        return function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            console.log(text);
+            if (element) {
+                element.value += text + "\n";
+                element.scrollTop = element.scrollHeight; // focus on bottom
             }
-        }(), printErr: function (e) {
-            arguments.length > 1 && (e = Array.prototype.slice.call(arguments).join(" ")), console.error(e)
-        }, canvas: function () {
-            var e = document.querySelector("#canvas");
-            return e.addEventListener("webglcontextlost", (function (e) {
-                alert("WebGL context lost. You will need to reload the page."), e.preventDefault()
-            }), !1), e
-        }(), setStatus: function (e) {
-            if (Module.setStatus.last || (Module.setStatus.last = {
-                time: Date.now(),
-                text: ""
-            }), e !== Module.setStatus.last.text) {
-                var t = e.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/), n = Date.now();
-                t && n - Module.setStatus.last.time < 30 || (Module.setStatus.last.time = n, Module.setStatus.last.text = e, t ? (e = t[1], progressElement.value = 100 * parseInt(t[2]), progressElement.max = 100 * parseInt(t[4]), progressElement.hidden = !0, spinnerElement.hidden = !1) : (progressElement.value = null, progressElement.max = null, progressElement.hidden = !0, e || (spinnerElement.style.display = "none")), statusElement.innerHTML = e)
-            }
-        }, totalDependencies: 0, monitorRunDependencies: function (e) {
-            this.totalDependencies = Math.max(this.totalDependencies, e), Module.setStatus(e ? "Preparing... (" + (this.totalDependencies - e) + "/" + this.totalDependencies + ")" : "All downloads complete.")
+        };
+    })(),
+    printErr: function(text) {
+        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        console.error(text);
+    },
+    canvas: (function() {
+        var canvas = document.querySelector('#canvas');
+        canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+        return canvas;
+    })(),
+    setStatus: function(text) {
+        if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+        if (text === Module.setStatus.last.text) return;
+
+        var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+        var now = Date.now();
+
+        if (m && now - Module.setStatus.last.time < 30) return; // If this is a progress update, skip it if too soon
+
+        Module.setStatus.last.time = now;
+        Module.setStatus.last.text = text;
+
+        if (m) {
+            text = m[1];
+            progressElement.value = parseInt(m[2])*100;
+            progressElement.max = parseInt(m[4])*100;
+            progressElement.hidden = true;
+            spinnerElement.hidden = false;
+        } else {
+            progressElement.value = null;
+            progressElement.max = null;
+            progressElement.hidden = true;
+            if (!text) spinnerElement.style.display = 'none';
         }
-    };
-Module.setStatus("Downloading..."), window.onerror = function () {
-    Module.setStatus("Exception thrown, see JavaScript console"), spinnerElement.style.display = "none", Module.setStatus = function (e) {
-        e && Module.printErr("[post-exception status] " + e)
-    }
+
+        statusElement.innerHTML = text;
+    },
+    totalDependencies: 0,
+    monitorRunDependencies: function(left) {
+        this.totalDependencies = Math.max(this.totalDependencies, left);
+        Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+    },
+    //noInitialRun: true
+};
+
+Module.setStatus('Downloading...');
+
+window.onerror = function() {
+    Module.setStatus('Exception thrown, see JavaScript console');
+    spinnerElement.style.display = 'none';
+    Module.setStatus = function(text) { if (text) Module.printErr('[post-exception status] ' + text); };
+};
+
+const port1 = document.getElementById('port1');
+
+function test(){
+    return parseInt(port1.textContent);
 }

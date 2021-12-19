@@ -54,10 +54,10 @@ RM = /home/adi/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/212.5457.51/bin/cm
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /F/Repositories/MakeAThonSim
+CMAKE_SOURCE_DIR = /F/Repositories/makeathon/MakeAThonSim
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /F/Repositories/MakeAThonSim/cmake-build-debug
+CMAKE_BINARY_DIR = /F/Repositories/makeathon/MakeAThonSim/cmake-build-debug
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -81,14 +81,14 @@ clean: CMakeFiles/MakeAThonSim.dir/clean
 CMakeFiles/MakeAThonSim.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/MakeAThonSim.dir/build.make CMakeFiles/MakeAThonSim.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/MakeAThonSim.dir/build.make CMakeFiles/MakeAThonSim.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/F/Repositories/MakeAThonSim/cmake-build-debug/CMakeFiles --progress-num=1,2 "Built target MakeAThonSim"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/F/Repositories/makeathon/MakeAThonSim/cmake-build-debug/CMakeFiles --progress-num=1,2 "Built target MakeAThonSim"
 .PHONY : CMakeFiles/MakeAThonSim.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/MakeAThonSim.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /F/Repositories/MakeAThonSim/cmake-build-debug/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /F/Repositories/makeathon/MakeAThonSim/cmake-build-debug/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/MakeAThonSim.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /F/Repositories/MakeAThonSim/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /F/Repositories/makeathon/MakeAThonSim/cmake-build-debug/CMakeFiles 0
 .PHONY : CMakeFiles/MakeAThonSim.dir/rule
 
 # Convenience name for target.

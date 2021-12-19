@@ -1,12 +1,8 @@
 #include "raylib.h"
-#include <math.h>
 
+#define PLATFORM_WEB
 
-//#define PLATFORM_WEB
-
-#if defined(PLATFORM_WEB)
-#include <emscripten/emscripten.h>
-#endif
+#include "/F/Repositories/emsdk/upstream/emscripten/system/include/emscripten.h"
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition
@@ -56,6 +52,9 @@ void UpdateDrawFrame(void) {
     //----------------------------------------------------------------------------------
     // TODO: Update your variables here
     //----------------------------------------------------------------------------------
+    float x;
+    float y;
+    float rotation;
 
     // Draw
     //----------------------------------------------------------------------------------
@@ -63,13 +62,15 @@ void UpdateDrawFrame(void) {
 
     ClearBackground(RAYWHITE);
 
-    DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+    DrawText("RoboKnighs Make-a-thon", 0, 0, 10, BLACK);
+    DrawText("Made with <3 by Adi Mathur", 0, 15, 4, LIGHTGRAY);
+
+    int val = EM_ASM_INT({
+        let val = test();
+        return val;
+    });
+    EM_ASM("console.log($0)", val);
 
     EndDrawing();
     //----------------------------------------------------------------------------------
-}
-
-
-int int_sqrt(int x) {
-    return sqrt(x);
 }
