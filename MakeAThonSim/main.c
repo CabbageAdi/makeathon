@@ -7,9 +7,13 @@
 //----------------------------------------------------------------------------------
 // Global Variables Definition
 //----------------------------------------------------------------------------------
-int screenWidth = 800;
-int screenHeight = 450;
+float x = 100;
+float y = 100;
+float rotation;
+float speed = 300;
 
+Camera3D camera;
+// Camera mode type
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
@@ -21,20 +25,18 @@ void UpdateDrawFrame(void);     // Update and Draw one frame
 int main() {
     // Initialization
     //--------------------------------------------------------------------------------------
+    int resolution = 50;
+    int screenWidth = 16 * resolution;
+    int screenHeight = 9 * resolution;
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
 
-#if defined(PLATFORM_WEB)
-    emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
-#else
-    SetTargetFPS(60);   // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
+    camera.position = (Vector3){ 0.0f, 10.0f, 10.0f };  // Camera position
+    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
+    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.fovy = 45.0f;                                // Camera field-of-view Y
+    camera.projection = CAMERA_PERSPECTIVE;
 
-    // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        UpdateDrawFrame();
-    }
-#endif
+    emscripten_set_main_loop(UpdateDrawFrame, 30, 1);
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
@@ -52,24 +54,48 @@ void UpdateDrawFrame(void) {
     //----------------------------------------------------------------------------------
     // TODO: Update your variables here
     //----------------------------------------------------------------------------------
-    float x;
-    float y;
-    float rotation;
+
 
     // Draw
     //----------------------------------------------------------------------------------
     BeginDrawing();
 
-    ClearBackground(RAYWHITE);
+    ClearBackground(GREEN);
 
-    DrawText("RoboKnighs Make-a-thon", 0, 0, 10, BLACK);
-    DrawText("Made with <3 by Adi Mathur", 0, 15, 4, LIGHTGRAY);
+    DrawText("RoboKnighs Make-a-thon", 5, 6, 20, BLACK);
 
-    int val = EM_ASM_INT({
-        let val = test();
-        return val;
-    });
-    EM_ASM("console.log($0)", val);
+    //BeginMode3D(camera);
+    //Vector3 pos = {x, y, 0};
+    //DrawCube(pos, 2, 2, 2, WHITE);
+    DrawRectangle(x, y, 70, 70, BLUE);
+
+    for (int i = 0; i < 4; i++){
+        int val = EM_ASM_INT({
+            let val = pinVal($0);
+            return val;
+        }, i);
+        if (i == 0 && val == 1)
+            x += speed * GetFrameTime();
+        if (i == 1 && val == 1)
+            x -= speed * GetFrameTime();
+        if (i == 2 && val == 1)
+            y += speed * GetFrameTime();
+        if (i == 3 && val == 1)
+            y -= speed * GetFrameTime();
+    }
+
+    if (x > 200){
+        EM_ASM({
+           setPin(4, 1);
+        });
+    }
+    else{
+        EM_ASM({
+            setPin(4, 0);
+        });
+    }
+
+    //EndMode3D();
 
     EndDrawing();
     //----------------------------------------------------------------------------------

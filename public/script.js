@@ -64,14 +64,16 @@ var Module = {
 
 Module.setStatus('Downloading...');
 
-window.onerror = function() {
-    Module.setStatus('Exception thrown, see JavaScript console');
-    spinnerElement.style.display = 'none';
-    Module.setStatus = function(text) { if (text) Module.printErr('[post-exception status] ' + text); };
-};
+// window.onerror = function() {
+//     Module.setStatus('Exception thrown, see JavaScript console');
+//     spinnerElement.style.display = 'none';
+//     Module.setStatus = function(text) { if (text) Module.printErr('[post-exception status] ' + text); };
+// };
 
-const port1 = document.getElementById('port1');
+function pinVal(pin){
+    return parseInt(document.getElementById(pin.toString()).textContent);
+}
 
-function test(){
-    return parseInt(port1.textContent);
+function setPin(pin, val){
+    document.getElementById(pin.toString()).textContent = val.toString();
 }

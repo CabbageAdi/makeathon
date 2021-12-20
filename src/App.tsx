@@ -1,88 +1,120 @@
 import React from 'react';
 import './App.css';
 
-import "@wokwi/elements";
 import { buildHex } from "./compile";
 import { AVRRunner } from "./execute";
-import { LEDElement } from "@wokwi/elements";
-import {formatTime} from "./format-time";
+import { formatTime } from "./format-time";
+import AceEditor from "react-ace";
 
-const BLINK_CODE = `
-// LEDs connected to pins 8..13
+let CODE = `
+# define forward 0
+# define back 1
+# define down 2
+# define up 3
+# define in 4
 
-byte leds[] = {13, 12, 11, 10, 9, 8};
 void setup() {
-  for (byte i = 0; i < sizeof(leds); i++) {
-    pinMode(leds[i], OUTPUT);
-  }
+  Serial.begin(115200);
+  pinMode(forward, OUTPUT);
+  pinMode(back, OUTPUT);
+  pinMode(down, OUTPUT);
+  pinMode(up, OUTPUT);
+  pinMode(in, INPUT);
 }
 
-int i = 0;
 void loop() {
-  digitalWrite(leds[i], HIGH);
-  delay(250);
-  digitalWrite(leds[i], LOW);
-  i = (i + 1) % sizeof(leds);
+  digitalWrite(back, LOW);
+  digitalWrite(down, HIGH);
+  delay(300);
+  Serial.print(digitalRead(in));
+  digitalWrite(down, LOW);
+  digitalWrite(forward, HIGH);
+  delay(300);
+  Serial.print(digitalRead(in));
+  digitalWrite(forward, LOW);
+  digitalWrite(up, HIGH);
+  delay(300);
+  Serial.print(digitalRead(in));
+  digitalWrite(up, LOW);
+  digitalWrite(back, HIGH);
+  delay(300);
+  Serial.print(digitalRead(in));
 }`.trim();
+
+const outPins : number[] = [0, 1, 2, 3];
+const inPins : number[] = [4];
+let values: { [id: number] : boolean; } = {};
 
 // Set up toolbar
 let runner: AVRRunner | null;
 
-const runButton = document.querySelector("#run-button") as Element;
-runButton?.addEventListener("click", compileAndRun);
-const stopButton = document.querySelector("#stop-button") as Element;
-stopButton?.addEventListener("click", stopCode);
+let runButton : Element;
+let stopButton : Element;
+let compilerOutputText : Element;
 
-//reference for parsing later
-/*function updateLEDs(value: number, startPin: number) {
-  for (const led of Array.from(LEDs)) {
-    const pin = parseInt(led.getAttribute("pin") as string, 10);
-    if (pin >= startPin && pin <= startPin + 8) {
-      led.value = !!(value & (1 << (pin - startPin)));
-    }
-  }
-}*/
+window.onload = function (){
+  runButton = document.querySelector("#run-button") as Element;
+  runButton.addEventListener("click", compileAndRun);
+  stopButton = document.querySelector("#stop-button") as Element;
+  stopButton.addEventListener("click", stopCode);
+  compilerOutputText = document.querySelector("#compiler-output-text") as Element;
+
+  outPins.forEach((pin) =>{
+    var element = document.createElement('div');
+    element.hidden = true;
+    element.id = pin.toString();
+    document.body.appendChild(element);
+  });
+  inPins.forEach((pin) =>{
+    var element = document.createElement('div');
+    element.hidden = true;
+    element.id = pin.toString();
+    document.body.appendChild(element);
+  });
+}
 
 function executeProgram(hex: string) {
   runner = new AVRRunner(hex);
   const statusLabel = document.querySelector("#status-label") as Element;
   const MHZ = 16000000;
 
-  let port1 = document.getElementById('port1') as Element;
-
-  console.log('executing');
-
-  // Hook to PORTB register
-  runner.portB.addListener(value => {
-    port1.textContent = value.toString();
-    //updateLEDs(value, 8);
+  runner.portD.addListener(value => {
+    outPins.forEach((pin) => {
+      (document.getElementById(pin.toString()) as Element).textContent = runner?.portD.pinState(pin).toString() ?? null;
+    })
   });
+  runner.usart.onByteTransmit = (value: number) => {
+    compilerOutputText.textContent += String.fromCharCode(value);
+  };
+
   runner.execute(cpu => {
     const time = formatTime(cpu.cycles / MHZ);
     statusLabel.textContent = "Simulation time: " + time;
+    inPins.forEach((pin) => {
+      const val = document.getElementById(pin.toString())?.textContent == '1' ? true : false;
+      runner?.portD.setPin(pin, val);
+      console.log(val);
+    });
   });
 }
 
 async function compileAndRun() {
-  console.log('running code');
+  compilerOutputText.textContent = "Compiling..."
 
-  runButton?.setAttribute("disabled", "1");
+  runButton.setAttribute("disabled", "1");
   try {
-
-    const result = await buildHex(BLINK_CODE);
-    (document.querySelector("#compiler-output-text") as Element).textContent = result.stderr || result.stdout;
+    const result = await buildHex(CODE);
+    compilerOutputText.textContent = result.stderr || result.stdout;
     if (result.hex) {
-      //compilerOutputText.textContent += "\nProgram running...";
-      //stopButton.removeAttribute("disabled");
+      compilerOutputText.textContent += "\nProgram running...";
+      stopButton.removeAttribute("disabled");
       executeProgram(result.hex);
     } else {
-      //runButton.removeAttribute("disabled");
+      runButton.removeAttribute("disabled");
     }
   } catch (err) {
-    //runButton.removeAttribute("disabled");
+    runButton.removeAttribute("disabled");
     alert("Failed: " + err);
-  } finally {
-
   }
 }
 
@@ -93,6 +125,7 @@ function stopCode() {
     runner.stop();
     runner = null;
   }
+  compilerOutputText.textContent = null;
 }
 
 //add scripts
@@ -108,24 +141,25 @@ document.body.appendChild(script);
 function App() {
   return (
       <div>
+        <div id="spinner"/>
+        <div id="status">Downloading...</div>
+        <progress hidden id="progress"/>
+        <canvas id="canvas"/>
+
         <div className="app-container">
-          <div className="toolbar">
-            <button id="run-button" onClick={compileAndRun}>Run</button>
-            <button id="stop-button" disabled>Stop</button>
-            <div className="spacer"></div>
-            <div id="status-label"></div>
+          <div className={"code-editor"}>
+            <div className="toolbar">
+              <button id="run-button" >Run</button>
+              <button id="stop-button" disabled>Stop</button>
+              <div className="spacer"/>
+              <div id="status-label"/>
+            </div>
+            <AceEditor value={CODE} onChange={code => CODE = code } width={"auto"} fontSize={"15px"}/>
           </div>
-          <div className="code-editor"></div>
+
           <div className="compiler-output">
-            <pre id="compiler-output-text"></pre>
+            <p id="compiler-output-text"/>
           </div>
-
-          <div id="spinner"></div>
-          <div id="status">Downloading...</div>
-          <progress hidden id="progress"></progress>
-          <canvas id="canvas"></canvas>
-
-          <div hidden id={"port1"}></div>
         </div>
         <script>
           editorLoaded();

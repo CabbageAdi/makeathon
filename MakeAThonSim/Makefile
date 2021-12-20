@@ -31,7 +31,7 @@ RAYLIB_PATH        ?= /F/Repositories/raylib
 # Define default options
 
 # One of PLATFORM_DESKTOP, PLATFORM_RPI, PLATFORM_ANDROID, PLATFORM_WEB
-PLATFORM           ?= PLATFORM_DESKTOP
+PLATFORM           ?= PLATFORM_WEB
 
 # Locations of your newly installed library and associated headers.
 # On Linux, if you have installed raylib but cannot compile the examples, check that
@@ -393,7 +393,7 @@ all:
 
 # Project target defined by PROJECT_NAME
 $(PROJECT_NAME): $(OBJS)
-	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
+	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM) && cp makeathonsim.data ../public/makeathonsim.data && cp makeathonsim.wasm ../public/makeathonsim.wasm && cp makeathonsim.js ../public/makeathonsim.js
 
 # Compile source files
 # NOTE: This pattern will compile every module defined on $(OBJS)
