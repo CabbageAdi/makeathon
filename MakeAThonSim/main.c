@@ -13,11 +13,15 @@ float rotation;
 float speed = 300;
 
 Camera3D camera;
+
 // Camera mode type
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
 void UpdateDrawFrame(void);     // Update and Draw one frame
+int getPin(int pin);
+
+void setPin(int pin, int value);
 
 //----------------------------------------------------------------------------------
 // Main Enry Point
@@ -30,9 +34,9 @@ int main() {
     int screenHeight = 9 * resolution;
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
 
-    camera.position = (Vector3){ 0.0f, 10.0f, 10.0f };  // Camera position
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.position = (Vector3) {0.0f, 10.0f, 10.0f};  // Camera position
+    camera.target = (Vector3) {0.0f, 0.0f, 0.0f};      // Camera looking at point
+    camera.up = (Vector3) {0.0f, 1.0f, 0.0f};          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;
 
@@ -69,11 +73,8 @@ void UpdateDrawFrame(void) {
     //DrawCube(pos, 2, 2, 2, WHITE);
     DrawRectangle(x, y, 70, 70, BLUE);
 
-    for (int i = 0; i < 4; i++){
-        int val = EM_ASM_INT({
-            let val = pinVal($0);
-            return val;
-        }, i);
+    for (int i = 0; i < 4; i++) {
+        int val = getPin(i);
         if (i == 0 && val == 1)
             x += speed * GetFrameTime();
         if (i == 1 && val == 1)
@@ -84,19 +85,28 @@ void UpdateDrawFrame(void) {
             y -= speed * GetFrameTime();
     }
 
-    if (x > 200){
-        EM_ASM({
-           setPin(4, 1);
-        });
+    if (x > 200) {
+        setPin(4, 1)
     }
-    else{
-        EM_ASM({
-            setPin(4, 0);
-        });
+    else {
+        setPin(4, 0);
     }
 
     //EndMode3D();
 
     EndDrawing();
     //----------------------------------------------------------------------------------
+}
+
+int getPin(int pin) {
+    return EM_ASM_INT({
+                          let val = pinVal($0);
+                          return val;
+                      }, pin);
+}
+
+void setPin(int pin, int value) {
+    EM_ASM({
+               setPin($o, $1)
+           }, pin, value);
 }
