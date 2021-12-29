@@ -81,7 +81,7 @@ function executeProgram(hex: string) {
     const time = formatTime(cpu.cycles / MHZ);
     statusLabel.textContent = "Simulation time: " + time;
     inPins.forEach((pin) => {
-      const val = document.getElementById(pin.toString())?.textContent == '1' ? true : false;
+      //const val = document.getElementById(pin.toString())?.textContent == '1' ? true : false;
     });
   });
 }
