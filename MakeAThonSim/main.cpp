@@ -56,7 +56,7 @@ int main() {
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
 
     //camera
-    camera.position = (Vector3) {5, 20.0f, 0};
+    camera.position = (Vector3) {5, 100.0f, 0};
     camera.target = (Vector3) {0.0f, 0.0f, 0.0f};
     camera.up = (Vector3) {0.0f, 1.0f, 0.0f};
     camera.fovy = 45.0f;

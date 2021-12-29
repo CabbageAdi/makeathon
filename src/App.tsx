@@ -25,10 +25,9 @@ void loop() {
 }
 `.trim();
 
-const outPins : number[] = [ 0, //left forward
-  1, //left backward
-  2, //right forward
-  3 //right backward
+const outPins : number[] = [ 0, //stop or start
+  1, //left
+  2, //right
 ];
 const inPins : number[] = [ 4, //forward sensor
     5, //left sensor
@@ -80,9 +79,6 @@ function executeProgram(hex: string) {
   runner.execute(cpu => {
     const time = formatTime(cpu.cycles / MHZ);
     statusLabel.textContent = "Simulation time: " + time;
-    inPins.forEach((pin) => {
-      //const val = document.getElementById(pin.toString())?.textContent == '1' ? true : false;
-    });
   });
 }
 
@@ -139,6 +135,13 @@ function App() {
         <canvas id="canvas"/>
 
         <div className="app-container">
+          <p>
+            Controls: Hold W for movement <br />
+            Nothing else: Forward <br />
+            A: Rotate left <br />
+            D: Rotate right <br />
+            A and D: Backwards
+          </p>
           <div className={"code-editor"}>
             <div className="toolbar">
               <button id="run-button" >Run</button>
