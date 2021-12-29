@@ -6,6 +6,8 @@
 
 using namespace std;
 
+bool debug = false;
+
 //robot values
 float x = 6;
 float y = 0;
@@ -25,7 +27,7 @@ void UpdateDrawFrame(void);
 int getPin(int pin);
 void setPin(int pin, int value);
 void Log(string text);
-void DrawThin(Vector2 pos);
+void DrawMarker(Vector2 pos);
 float GetDistance(Vector2 start, Vector2 end, Vector2 sensorPos, float rot);
 float deg_cos(float angle);
 float deg_sin(float angle);
@@ -33,7 +35,7 @@ float deg_tan(float angle);
 bool doIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2);
 
 //maze values
-#define MAZE_SIZE 14
+#define MAZE_SIZE 22
 #define MAZE_THICKNESS 2
 #define POINTS 5
 float mazePoints[POINTS][2][2] = {
@@ -171,8 +173,8 @@ void UpdateDrawFrame(void) {
     float biggerAngle2 = 90 - (rotation + biggerSubAngle);
     Vector2 topCorner2 = {x + deg_cos(biggerAngle2) * biggerHypotenuse, y + deg_sin(biggerAngle2) * biggerHypotenuse};
 
-    DrawThin(topCorner1);
-    DrawThin(topCorner2);
+    DrawMarker(topCorner1);
+    DrawMarker(topCorner2);
 
     float smallerHypotenuse = -sqrt(ssxdist * ssxdist + backdist * backdist);
     float smallerSubAngle = asin(ssxdist / smallerHypotenuse) * 180 / PI;
@@ -181,8 +183,8 @@ void UpdateDrawFrame(void) {
     float smallerAngle2 = 90 - (rotation + smallerSubAngle);
     Vector2 bottomCorner2 = {x + deg_cos(smallerAngle2) * smallerHypotenuse, y + deg_sin(smallerAngle2) * smallerHypotenuse};
 
-    DrawThin(bottomCorner1);
-    DrawThin(bottomCorner2);
+    DrawMarker(bottomCorner1);
+    DrawMarker(bottomCorner2);
     Vector2 robotEdges[4][2] = {
             { bottomCorner1, bottomCorner2 },
             { bottomCorner1, topCorner1 },
@@ -213,14 +215,14 @@ void UpdateDrawFrame(void) {
             Vector2 line3e = {point1.x - MAZE_THICKNESS / 2, point1.y};
             Vector2 line4s = {point2.x + MAZE_THICKNESS / 2, point2.y};
             Vector2 line4e = {point2.x - MAZE_THICKNESS / 2, point2.y};
-            DrawThin(line1s);
-            DrawThin(line1e);
-            DrawThin(line2s);
-            DrawThin(line2e);
-            DrawThin(line3s);
-            DrawThin(line3e);
-            DrawThin(line4s);
-            DrawThin(line4e);
+            DrawMarker(line1s);
+            DrawMarker(line1e);
+            DrawMarker(line2s);
+            DrawMarker(line2e);
+            DrawMarker(line3s);
+            DrawMarker(line3e);
+            DrawMarker(line4s);
+            DrawMarker(line4e);
             for (int j = 0; j < 4; j++){
                 if (doIntersect(robotEdges[j][0], robotEdges[j][1], line1s, line1e) ||
                         doIntersect(robotEdges[j][0], robotEdges[j][1], line2s, line2e) ||
@@ -250,14 +252,14 @@ void UpdateDrawFrame(void) {
             Vector2 line3e = {point1.x, point1.y - MAZE_THICKNESS / 2};
             Vector2 line4s = {point2.x, point2.y + MAZE_THICKNESS / 2};
             Vector2 line4e = {point2.x, point2.y - MAZE_THICKNESS / 2};
-            DrawThin(line1s);
-            DrawThin(line1e);
-            DrawThin(line2s);
-            DrawThin(line2e);
-            DrawThin(line3s);
-            DrawThin(line3e);
-            DrawThin(line4s);
-            DrawThin(line4e);
+            DrawMarker(line1s);
+            DrawMarker(line1e);
+            DrawMarker(line2s);
+            DrawMarker(line2e);
+            DrawMarker(line3s);
+            DrawMarker(line3e);
+            DrawMarker(line4s);
+            DrawMarker(line4e);
             for (int j = 0; j < 4; j++){
                 if (doIntersect(robotEdges[j][0], robotEdges[j][1], line1s, line1e) ||
                     doIntersect(robotEdges[j][0], robotEdges[j][1], line2s, line2e) ||
@@ -397,7 +399,8 @@ void setPin(int pin, int value) {
         }, pin, value);
 }
 
-void DrawThin(Vector2 pos){
+void DrawMarker(Vector2 pos){
+    if (!debug) return;
     DrawCube((Vector3){pos.x, 0, pos.y}, 0.3, 100, 0.3, RED);
 }
 
