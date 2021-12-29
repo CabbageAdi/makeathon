@@ -1,5 +1,6 @@
 body {
   text-align: center;
+  white-space: pre-line;
 }
 
 .app-container {
@@ -12,4 +13,9 @@ body {
 .toolbar {
   background-color: #ccc;
   width: 100%;
+}
+
+.compiler-output{
+  float: left;
+  width: 900px;
 }

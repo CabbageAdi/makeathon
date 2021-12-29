@@ -24,7 +24,7 @@
 .PHONY: all clean
 
 # Define required variables
-PROJECT_NAME       ?= makeathonsim
+PROJECT_NAME       ?= sim
 RAYLIB_VERSION     ?= 4.0.0
 RAYLIB_PATH        ?= /F/Repositories/raylib
 
@@ -176,7 +176,7 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     # HTML5 emscripten compiler
     # WARNING: To compile to HTML5, code must be redesigned
     # to use emscripten.h and emscripten_set_main_loop()
-    CC = emcc
+    CC = em++
 endif
 
 # Define default make program
@@ -200,7 +200,7 @@ endif
 #  -std=gnu99           defines C language mode (GNU C from 1999 revision)
 #  -Wno-missing-braces  ignore invalid warning (GCC bug 53119)
 #  -D_DEFAULT_SOURCE    use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
-CFLAGS += -Wall -std=gnu99 -D_DEFAULT_SOURCE -Wno-missing-braces
+CFLAGS += -Wall -D_DEFAULT_SOURCE -Wno-missing-braces
 
 ifeq ($(BUILD_MODE),DEBUG)
     CFLAGS += -g
@@ -249,11 +249,7 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     # --memory-init-file 0       # to avoid an external memory initialization code file (.mem)
     # --preload-file resources   # specify a resources folder for data compilation
     # --source-map-base          # allow debugging in browser with source map
-    CFLAGS += -s USE_GLFW=3 -s TOTAL_MEMORY=67108864 -s FORCE_FILESYSTEM=1 --preload-file makeathonsim.data
-
-    # Define a custom shell .html and output extension
-    CFLAGS += --shell-file $(RAYLIB_PATH)/src/shell.html
-    EXT = .html
+    CFLAGS += -s USE_GLFW=3 -s TOTAL_MEMORY=67108864 -s FORCE_FILESYSTEM=1 --preload-file resources
 endif
 
 # Define include paths for required headers
@@ -372,7 +368,7 @@ endif
 
 # Define all source files required
 PROJECT_SOURCE_FILES ?= \
-    main.c
+    main.cpp
 
 # Define all object files from source files
 OBJS = $(patsubst %.c, %.o, $(PROJECT_SOURCE_FILES))
@@ -393,7 +389,7 @@ all:
 
 # Project target defined by PROJECT_NAME
 $(PROJECT_NAME): $(OBJS)
-	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM) && cp makeathonsim.data ../public/makeathonsim.data && cp makeathonsim.wasm ../public/makeathonsim.wasm && cp makeathonsim.js ../public/makeathonsim.js
+	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM) && cp sim.data ../public/sim.data && cp sim.wasm ../public/sim.wasm && cp sim ../public/sim
 
 # Compile source files
 # NOTE: This pattern will compile every module defined on $(OBJS)

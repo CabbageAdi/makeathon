@@ -7,43 +7,33 @@ import { formatTime } from "./format-time";
 import AceEditor from "react-ace";
 
 let CODE = `
-# define forward 0
-# define back 1
-# define down 2
-# define up 3
-# define in 4
+# define lf 0 //left forward
+# define lb 1 //left backward
+# define rf 2 //right forward
+# define rb 3 //right backward
+
+# define fs 4 //forward sensor
+# define ls 5 //left sensor
+# define rs 6 //right sensor
 
 void setup() {
   Serial.begin(115200);
-  pinMode(forward, OUTPUT);
-  pinMode(back, OUTPUT);
-  pinMode(down, OUTPUT);
-  pinMode(up, OUTPUT);
-  pinMode(in, INPUT);
 }
 
 void loop() {
-  digitalWrite(back, LOW);
-  digitalWrite(down, HIGH);
-  delay(300);
-  Serial.print(digitalRead(in));
-  digitalWrite(down, LOW);
-  digitalWrite(forward, HIGH);
-  delay(300);
-  Serial.print(digitalRead(in));
-  digitalWrite(forward, LOW);
-  digitalWrite(up, HIGH);
-  delay(300);
-  Serial.print(digitalRead(in));
-  digitalWrite(up, LOW);
-  digitalWrite(back, HIGH);
-  delay(300);
-  Serial.print(digitalRead(in));
-}`.trim();
+  
+}
+`.trim();
 
-const outPins : number[] = [0, 1, 2, 3];
-const inPins : number[] = [4];
-let values: { [id: number] : boolean; } = {};
+const outPins : number[] = [ 0, //left forward
+  1, //left backward
+  2, //right forward
+  3 //right backward
+];
+const inPins : number[] = [ 4, //forward sensor
+    5, //left sensor
+    6 //right sensor
+];
 
 // Set up toolbar
 let runner: AVRRunner | null;
@@ -52,7 +42,7 @@ let runButton : Element;
 let stopButton : Element;
 let compilerOutputText : Element;
 
-window.onload = function (){
+window.onload = async function (){
   runButton = document.querySelector("#run-button") as Element;
   runButton.addEventListener("click", compileAndRun);
   stopButton = document.querySelector("#stop-button") as Element;
@@ -84,7 +74,7 @@ function executeProgram(hex: string) {
     })
   });
   runner.usart.onByteTransmit = (value: number) => {
-    compilerOutputText.textContent += String.fromCharCode(value);
+    SerialLog(String.fromCharCode(value));
   };
 
   runner.execute(cpu => {
@@ -92,8 +82,6 @@ function executeProgram(hex: string) {
     statusLabel.textContent = "Simulation time: " + time;
     inPins.forEach((pin) => {
       const val = document.getElementById(pin.toString())?.textContent == '1' ? true : false;
-      runner?.portD.setPin(pin, val);
-      console.log(val);
     });
   });
 }
@@ -106,7 +94,7 @@ async function compileAndRun() {
     const result = await buildHex(CODE);
     compilerOutputText.textContent = result.stderr || result.stdout;
     if (result.hex) {
-      compilerOutputText.textContent += "\nProgram running...";
+      compilerOutputText.textContent += "\nProgram running.\n\nSerial Output:\n";
       stopButton.removeAttribute("disabled");
       executeProgram(result.hex);
     } else {
@@ -116,6 +104,10 @@ async function compileAndRun() {
     runButton.removeAttribute("disabled");
     alert("Failed: " + err);
   }
+}
+
+function SerialLog(text: any){
+  compilerOutputText.textContent += text.toString();
 }
 
 function stopCode() {
@@ -130,7 +122,7 @@ function stopCode() {
 
 //add scripts
 let script2 = document.createElement('script');
-script2.src = document.documentURI + 'makeathonsim.js';
+script2.src = document.documentURI + 'sim';
 script2.async = true;
 document.body.appendChild(script2);
 let script = document.createElement('script');
@@ -156,11 +148,15 @@ function App() {
             </div>
             <AceEditor value={CODE} onChange={code => CODE = code } width={"auto"} fontSize={"15px"}/>
           </div>
-
-          <div className="compiler-output">
-            <p id="compiler-output-text"/>
-          </div>
         </div>
+
+        <div className="compiler-output">
+          <div className={"toolbar"}>
+            <div>Serial Monitor</div>
+          </div>
+          <p id="compiler-output-text"/>
+        </div>
+
         <script>
           editorLoaded();
         </script>

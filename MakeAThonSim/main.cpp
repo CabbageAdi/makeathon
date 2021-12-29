@@ -1,17 +1,21 @@
 #include "raylib.h"
 #include "/F/Repositories/emsdk/upstream/emscripten/system/include/emscripten.h"
 #include "math.h"
-#include <stdio.h>
+#include "iostream"
+#include "cstring"
+
+using namespace std;
 
 //robot values
 float x = 6;
 float y = 0;
-float rotation;
+float rotation = 0;
 float speed = 5;
-#define fsdist 5 //front sensor distance from middle
-#define lsdist 4 //left sensor distance from middle
-#define rsdist (-4) //right sensor distance from middle
-#define backdist 5 //back distance from middle
+float rotationSpeed = 50;
+#define fsdist 6 //front sensor distance from middle
+#define ssxdist 2 //side sensor distances from middle on x
+#define ssydist 3 //side sensor distances from middle on y
+#define backdist 2 //back distance from middle
 
 //global variables
 Camera3D camera;
@@ -20,17 +24,19 @@ Camera3D camera;
 void UpdateDrawFrame(void);
 int getPin(int pin);
 void setPin(int pin, int value);
-void Log(char* text);
-char* IntStr(int num);
-char* FloatStr(float num);
+void Log(string text);
 void DrawThin(Vector2 pos);
 float GetDistance(Vector2 start, Vector2 end, Vector2 sensorPos, float rot);
+float deg_cos(float angle);
+float deg_sin(float angle);
+float deg_tan(float angle);
+bool doIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2);
 
 //maze values
 #define MAZE_SIZE 12
 #define MAZE_THICKNESS 2
 #define POINTS 5
-int mazePoints[POINTS][2][2] = {
+float mazePoints[POINTS][2][2] = {
         {{0, 0}, {0, 1}},
         {{0, 1}, {1, 1}},
         {{1, 1}, {1, 2}},
@@ -85,13 +91,13 @@ void UpdateDrawFrame(void) {
     DrawGrid(200, 1);
     DrawModelEx(robotModel, pos, (Vector3){0, 1, 0}, rotation, (Vector3){2, 2, 2}, WHITE);
 
-    // TODO THIS SHOULD ACCOUNT FOR ROTATION
-    Vector2 forwardSensorPos = { x, y + fsdist };
+    Vector2 forwardSensorPos = { x + deg_sin(rotation) * fsdist, y + deg_cos(rotation) * fsdist };
     DrawThin(forwardSensorPos);
-    Vector2 rightSensorPos = { x + rsdist, y };
+    Vector2 leftSensorPos = { x + deg_sin(90 - rotation) * ssxdist , y - deg_cos(90 - rotation) * ssxdist };
+    DrawThin(leftSensorPos);
+    Vector2 rightSensorPos = {x + deg_sin(90 - rotation) * ssxdist , y + deg_cos(90 - rotation) * ssxdist};
     DrawThin(rightSensorPos);
     float forwardMin = -1;
-    float backMin = -1;
     float rightMin = -1;
     float leftMin = -1;
     //maze drawing
@@ -104,72 +110,111 @@ void UpdateDrawFrame(void) {
         DrawCube(midpoint, start.x == end.x ? MAZE_THICKNESS : fabsf(start.x - end.x) + MAZE_THICKNESS, 5 , start.y == end.y ? MAZE_THICKNESS : fabsf(start.y - end.y) + MAZE_THICKNESS, BLACK);
 
         //sensor values
-        //forward and back
+        //forward
         float forward = GetDistance(start, end, forwardSensorPos, rotation);
         if (forward > 0 && (forward < forwardMin || forwardMin == -1)){
             forwardMin = forward;
         }
-        //back
-        else if (forward < 0){
-            float backDist = -forward - (fsdist + backdist);
-            if (backDist < backMin || backMin == -1){
-                backMin = backDist;
-            }
+        //left
+        float left = GetDistance(start, end, leftSensorPos, rotation + 90);
+        if (left > 0 && (left < leftMin || leftMin == -1)){
+            leftMin = left;
         }
-        //left and right
-        float right = GetDistance(start, end, rightSensorPos, rotation + 90);
+        //right
+        float right = GetDistance(start, end, rightSensorPos, rotation - 90);
         if (right > 0 && (right < rightMin || rightMin == -1)){
             rightMin = right;
         }
-        //left
-        else if (right < 0){
-            float leftDist = -forward - (fsdist + backdist);
-            if (leftDist < leftMin || leftMin == -1){
-                leftMin = leftDist;
+        //right
+/*        else if (left < 0){
+            float rightDist = -forward - (2 * ssxdist);
+            if (rightDist < rightMin || rightMin == -1){
+                rightMin = rightDist;
             }
+        }*/
+    }
+
+    //TODO SET PIN VALUES
+
+
+    //robot movement
+    bool pin1 = false;
+    bool pin2 = false;
+    if (IsKeyDown(KEY_A)){
+        pin1 = true;
+    }
+    if (IsKeyDown(KEY_D)){
+        pin2 = true;
+    }
+    if (IsKeyDown(KEY_W)){
+        if (!pin1 && !pin2){
+            x += deg_sin(rotation) * speed * GetFrameTime();
+            y += deg_cos(rotation) * speed * GetFrameTime();
+        }
+        if (pin1 && pin2){
+            x -= deg_sin(rotation) * speed * GetFrameTime();
+            y -= deg_cos(rotation) * speed * GetFrameTime();
+        }
+        if (pin1 && !pin2){
+            rotation += rotationSpeed * GetFrameTime();
+        }
+        if (!pin1 && pin2){
+            rotation -= rotationSpeed * GetFrameTime();
         }
     }
 
-
-    //Log(FloatStr(forwardMin));
-    //TODO SET PIN VALUES
-
-    //TODO
-    //robot movement
-    for (int i = 0; i < 4; i++) {
-        int val = getPin(i);
-        if (i == 0 && val == 1)
-            x += speed * GetFrameTime();
-        if (i == 1 && val == 1)
-            x -= speed * GetFrameTime();
-        if (i == 2 && val == 1)
-            y += speed * GetFrameTime();
-        if (i == 3 && val == 1)
-            y -= speed * GetFrameTime();
+    //intersection checking
+    //robot lines
+    Vector2 robotEdges[4][2] = {
+            { {ssxdist, }  }
+    };
+    //check each maze
+    for (int i = 0; i < POINTS; i++){
+        Vector2 start = { mazePoints[i][0][0] * MAZE_SIZE, mazePoints[i][0][1] * MAZE_SIZE };
+        Vector2 end = { mazePoints[i][1][0] * MAZE_SIZE, mazePoints[i][1][1] * MAZE_SIZE };
+        if (start.x == end.x){
+            Vector2 point1 = {start.x, 0};
+            Vector2 point2 = {start.x, 0};
+            if (start.y > end.y){
+                point1.y = start.y + MAZE_THICKNESS / 2;
+                point2.y = end.y - MAZE_THICKNESS / 2;
+            }
+            if (start.y < end.y){
+                point1.y = end.y + MAZE_THICKNESS / 2;
+                point2.y = start.y - MAZE_THICKNESS / 2;
+            }
+            Vector2 line1s = {point1.x, point1.y + MAZE_THICKNESS / 2};
+            Vector2 line1e = {point2.x, point2.y + MAZE_THICKNESS / 2};
+            Vector2 line2s = {point1.x, point1.y - MAZE_THICKNESS / 2};
+            Vector2 line2e = {point2.x, point2.y - MAZE_THICKNESS / 2};
+            Vector2 line3s = {point1.x + MAZE_THICKNESS / 2, point1.y};
+            Vector2 line3e = {point1.x - MAZE_THICKNESS / 2, point1.y};
+            Vector2 line4s = {point2.x + MAZE_THICKNESS / 2, point2.y};
+            Vector2 line4e = {point2.x - MAZE_THICKNESS / 2, point2.y};
+        }
+        /*if (start.y == end.y){
+            Vector2 point1 = {0, start.y};
+            Vector2 point2 = {0, start.y};
+            if (start.x > end.x){
+                point1.x = start.x + MAZE_THICKNESS / 2;
+                point2.x = end.x - MAZE_THICKNESS / 2;
+            }
+            if (start.x < end.x){
+                point1.x = end.x + MAZE_THICKNESS / 2;
+                point2.x = start.x - MAZE_THICKNESS / 2;
+            }
+            Vector2 line1s = {point1.x, point1.y + MAZE_THICKNESS / 2};
+            Vector2 line1e = {point2.x, point2.y + MAZE_THICKNESS / 2};
+            Vector2 line2s = {point1.x, point1.y - MAZE_THICKNESS / 2};
+            Vector2 line2e = {point2.x, point2.y - MAZE_THICKNESS / 2};
+            Vector2 line3s = {point1.x + MAZE_THICKNESS / 2, point1.y};
+            Vector2 line3e = {point1.x - MAZE_THICKNESS / 2, point1.y};
+            Vector2 line4s = {point2.x + MAZE_THICKNESS / 2, point2.y};
+            Vector2 line4e = {point2.x - MAZE_THICKNESS / 2, point2.y};
+        }*/
     }
 
-    if (IsKeyDown(KEY_LEFT)){
-        rotation -= 30 * GetFrameTime();
-    }
-    else if (IsKeyDown(KEY_RIGHT)){
-        rotation += 30 * GetFrameTime();
-    }
-
-    if (IsKeyDown(KEY_W)){
-        y += speed * GetFrameTime();
-    }
-    if (IsKeyDown(KEY_S)){
-        y -= speed * GetFrameTime();
-    }
-    if (IsKeyDown(KEY_D)){
-        x -= speed * GetFrameTime();
-    }
-    if (IsKeyDown(KEY_A)){
-        x += speed * GetFrameTime();
-    }
-
-    Log(IntStr(x));
-    Log(IntStr(y));
+    Log("left: " + to_string(leftMin) + ", right: " + to_string(rightMin) + ", forward: " + to_string(forwardMin));
 
     EndMode3D();
 
@@ -179,25 +224,99 @@ void UpdateDrawFrame(void) {
 float GetDistance(Vector2 start, Vector2 end, Vector2 sensorPos, float rot){
     if (start.y == end.y){
         float distance = start.y - sensorPos.y;
-        float perpendLen = tanf(rot * (PI / 180)) * distance;
+        float perpendLen = deg_tan(rot) * distance;
         float perpendPoint = sensorPos.x + perpendLen;
         if ((start.x > end.x && perpendPoint > end.x && perpendPoint < start.x) ||
             (start.x < end.x && perpendPoint < end.x && perpendPoint > start.x)){
-            float final = (1 / cosf(rot * (PI / 180))) * distance - (MAZE_THICKNESS / 2.0f);
+            float final = (1 / deg_cos(rot)) * distance - (MAZE_THICKNESS / 2.0f);
             return final;
-            /*if (final > 0 && (final < min || min == -1)){
-                min = final;
-            }
-            //back
-            else if (final < 0){
-                float backDist = -final - (oppositeOffset);
-                if (backDist < oppositeMin || oppositeMin == -1){
-                    oppositeMin = backDist;
-                }
-            }*/
+        }
+    }
+    if (start.x == end.x){
+        float distance = start.x - sensorPos.x;
+        rot = 90 - rot;
+        float perpendLen = deg_tan(rot) * distance;
+        float perpendPoint = sensorPos.y + perpendLen;
+        if ((start.y > end.y && perpendPoint > end.y && perpendPoint < start.y) ||
+                (start.y < end.y && perpendPoint < end.y && perpendPoint > start.y)){
+            float final = (1 / deg_cos(rot)) * distance - (MAZE_THICKNESS / 2.0f);
+            return final;
         }
     }
     return -1;
+}
+
+// https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
+
+// Given three collinear points p, q, r, the function checks if
+// point q lies on line segment 'pr'
+bool onSegment(Vector2 p, Vector2 q, Vector2 r)
+{
+    if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+        q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+        return true;
+
+    return false;
+}
+
+// To find orientation of ordered triplet (p, q, r).
+// The function returns following values
+// 0 --> p, q and r are collinear
+// 1 --> Clockwise
+// 2 --> Counterclockwise
+int orientation(Vector2 p, Vector2 q, Vector2 r)
+{
+    // See https://www.geeksforgeeks.org/orientation-3-ordered-points/
+    // for details of below formula.
+    int val = (q.y - p.y) * (r.x - q.x) -
+              (q.x - p.x) * (r.y - q.y);
+
+    if (val == 0) return 0;  // collinear
+
+    return (val > 0)? 1: 2; // clock or counterclock wise
+}
+
+// The main function that returns true if line segment 'p1q1'
+// and 'p2q2' intersect.
+bool doIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2)
+{
+    // Find the four orientations needed for general and
+    // special cases
+    int o1 = orientation(p1, q1, p2);
+    int o2 = orientation(p1, q1, q2);
+    int o3 = orientation(p2, q2, p1);
+    int o4 = orientation(p2, q2, q1);
+
+    // General case
+    if (o1 != o2 && o3 != o4)
+        return true;
+
+    // Special Cases
+    // p1, q1 and p2 are collinear and p2 lies on segment p1q1
+    if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+
+    // p1, q1 and q2 are collinear and q2 lies on segment p1q1
+    if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+
+    // p2, q2 and p1 are collinear and p1 lies on segment p2q2
+    if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+
+    // p2, q2 and q1 are collinear and q1 lies on segment p2q2
+    if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+    return false; // Doesn't fall in any of the above cases
+}
+
+float deg_sin(float angle){
+    return sinf(angle * (PI / 180));
+}
+
+float deg_cos(float angle){
+    return cosf(angle * (PI / 180));
+}
+
+float deg_tan(float angle){
+    return tanf(angle * (PI / 180));
 }
 
 int getPin(int pin) {
@@ -213,22 +332,14 @@ void setPin(int pin, int value) {
         }, pin, value);
 }
 
-char* IntStr(int num){
-    char str[10000];
-    sprintf(str, "%d", num);
-    return str;
-}
-
-char* FloatStr(float num){
-    char str[10000];
-    sprintf(str, "%g", num);
-    return str;
-}
-
 void DrawThin(Vector2 pos){
     DrawCube((Vector3){pos.x, 0, pos.y}, 0.3, 100, 0.3, RED);
 }
 
-EM_JS(void, Log, (char* text), {
-    console.log(UTF8ToString(text));
-})
+void Log(string text){
+    char str[10000];
+    strcpy(str, text.c_str());
+    EM_ASM({
+        console.log(UTF8ToString($0));
+    }, str);
+}

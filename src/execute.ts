@@ -8,7 +8,9 @@ import {
     portCConfig,
     portDConfig,
     AVRUSART,
-    usart0Config
+    usart0Config,
+    AVRADC,
+    adcConfig
 } from "avr8js";
 import { loadHex } from "./intelhex";
 
@@ -23,6 +25,7 @@ export class AVRRunner {
     readonly portC: AVRIOPort;
     readonly portD: AVRIOPort;
     readonly usart: AVRUSART;
+    readonly adc: AVRADC;
 
     private stopped = false;
 
@@ -36,6 +39,7 @@ export class AVRRunner {
         this.portC = new AVRIOPort(this.cpu, portCConfig);
         this.portD = new AVRIOPort(this.cpu, portDConfig);
         this.usart = new AVRUSART(this.cpu, usart0Config, this.MHZ);
+        this.adc = new AVRADC(this.cpu, adcConfig);
     }
 
     async execute(callback: (cpu: CPU) => void) {
