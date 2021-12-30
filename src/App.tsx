@@ -17,6 +17,8 @@ let CODE = `
 # define rs A1 //right sensor
 # define ls A2 //left sensor
 
+# define mapped 4 //set to high if first run is complete
+
 void setup() {
   Serial.begin(115200);
   
@@ -27,10 +29,16 @@ void setup() {
   pinMode(fs, INPUT);
   pinMode(rs, INPUT);
   pinMode(ls, INPUT);
+  
+  pinMode(mapped, INPUT);
 }
 
 void loop() {
   
+}
+
+bool is_mapped(){
+  return digitalRead(mapped) == HIGH ? true : false;
 }
 
 void brake(){
@@ -83,6 +91,10 @@ const inPins : number[] = [ 0, //forward sensor
   2, //left sensor
 ];
 
+const statePins : number[] = [
+    4, //finished first run
+];
+
 // Set up toolbar
 let runner: AVRRunner | null;
 
@@ -109,6 +121,12 @@ window.onload = async function (){
     element.id = pin.toString();
     document.body.appendChild(element);
   });
+  statePins.forEach((pin) =>{
+    var element = document.createElement('div');
+    element.hidden = true;
+    element.id = pin.toString();
+    document.body.appendChild(element);
+  });
 }
 
 function executeProgram(hex: string) {
@@ -118,8 +136,7 @@ function executeProgram(hex: string) {
   runner.portD.addListener(value => {
     outPins.forEach((pin) => {
       (document.getElementById(pin.toString() + 'out') as Element).textContent = runner?.portD.pinState(pin).toString() ?? null;
-      console.log('changed');
-    })
+    });
   });
   runner.usart.onByteTransmit = (value: number) => {
     SerialLog(String.fromCharCode(value));
@@ -131,6 +148,10 @@ function executeProgram(hex: string) {
     inPins.forEach((pin) => {
       const val = parseFloat(document.getElementById(pin.toString())?.textContent as string);
       (runner as AVRRunner).adc.channelValues[pin] = val;
+    });
+    statePins.forEach(pin => {
+      const val = parseInt(document.getElementById(pin.toString())?.textContent as string) == 1 ? true : false;
+      (runner as AVRRunner).portD.setPin(pin, val);
     });
   });
 }
@@ -179,7 +200,6 @@ let script = document.createElement('script');
 script.src = document.documentURI + 'script.js';
 script.async = true;
 document.body.appendChild(script);
-
 
 function App() {
   return (

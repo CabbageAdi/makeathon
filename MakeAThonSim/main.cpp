@@ -9,15 +9,23 @@ using namespace std;
 bool debug = false;
 
 //robot values
-float x = 33;
-float y = 8;
+#define xDefault 33
+#define yDefault 8
+
+float x = xDefault;
+float y = yDefault;
 float rotation = 0;
-float speed = 8;
+float speed = 10;
 float rotationSpeed = 100;
 #define fsdist 6.5f //front sensor distance from middle
 #define ssxdist 2 //side sensor distances from middle on x
 #define ssydist 4.4f //side sensor distances from middle on y
 #define backdist 1.5f //back distance from middle
+
+#define EndYMin 3
+#define EndYMax 4
+#define EndXMin 3
+#define EndXMax 4
 
 //global variables
 Camera3D camera;
@@ -69,6 +77,8 @@ int main() {
     camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
     SetCameraMode(camera, CAMERA_FREE);
+
+    setPin(4, 0);
 
     robotModel = LoadModel("resources/mazesolver.obj");
 
@@ -290,7 +300,15 @@ void UpdateDrawFrame(void) {
         rotation = prevRot;
     }
 
+    if (x > EndXMin * MAZE_SIZE && x < EndXMax * MAZE_SIZE && y > EndYMin * MAZE_SIZE && y < EndYMax * MAZE_SIZE){
+        x = xDefault;
+        y = yDefault;
+        rotation = 0;
+        setPin(4, 1);
+    }
+
     //Log("left: " + to_string(leftMin) + ", right: " + to_string(rightMin) + ", forward: " + to_string(forwardMin));
+    Log("x: " + to_string(x) + ", y: " + to_string(y));
 
     EndMode3D();
 
