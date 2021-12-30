@@ -30,7 +30,47 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(analogRead(fs));
+  
+}
+
+void brake(){
+  digitalWrite(stop, LOW);
+}
+
+float forward_dist(){
+  return analogRead(fs) / 8;
+}
+
+float left_dist(){
+  return analogRead(ls) / 8;
+}
+
+float right_dist(){
+  return analogRead(rs) / 8;
+}
+
+void forward(){
+  digitalWrite(stop, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(right, LOW);
+}
+
+void back(){
+  digitalWrite(stop, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(right, HIGH);
+}
+
+void left_turn(){
+  digitalWrite(stop, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(right, LOW);
+}
+
+void right_turn(){
+  digitalWrite(stop, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(right, HIGH);
 }
 `.trim();
 
@@ -60,7 +100,7 @@ window.onload = async function (){
   outPins.forEach((pin) =>{
     var element = document.createElement('div');
     element.hidden = true;
-    element.id = pin.toString();
+    element.id = pin.toString() + 'out';
     document.body.appendChild(element);
   });
   inPins.forEach((pin) =>{
@@ -69,8 +109,6 @@ window.onload = async function (){
     element.id = pin.toString();
     document.body.appendChild(element);
   });
-
-
 }
 
 function executeProgram(hex: string) {
@@ -80,7 +118,8 @@ function executeProgram(hex: string) {
 
   runner.portD.addListener(value => {
     outPins.forEach((pin) => {
-      (document.getElementById(pin.toString()) as Element).textContent = runner?.portD.pinState(pin).toString() ?? null;
+      (document.getElementById(pin.toString() + 'out') as Element).textContent = runner?.portD.pinState(pin).toString() ?? null;
+      console.log('changed');
     })
   });
   runner.usart.onByteTransmit = (value: number) => {

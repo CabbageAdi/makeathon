@@ -65,7 +65,7 @@ var Module = {
 Module.setStatus('Downloading...');
 
 function pinVal(pin){
-    return parseInt(document.getElementById(pin.toString()).textContent);
+    return parseInt(document.getElementById(pin.toString() + 'out').textContent);
 }
 
 function setPin(pin, val){
