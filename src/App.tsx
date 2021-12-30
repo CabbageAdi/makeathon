@@ -5,23 +5,32 @@ import { buildHex } from "./compile";
 import { AVRRunner } from "./execute";
 import { formatTime } from "./format-time";
 import AceEditor from "react-ace";
+//@ts-ignore
+import ScrollToBottom from 'react-scroll-to-bottom';
 
 let CODE = `
-# define lf 0 //left forward
-# define lb 1 //left backward
-# define rf 2 //right forward
-# define rb 3 //right backward
+# define stop 0 //LOW is stop, HIGH is move
+# define left 1 //left 
+# define right 2 //right
 
-# define fs 4 //forward sensor
-# define ls 5 //left sensor
-# define rs 6 //right sensor
+# define fs A0 //forward sensor
+# define rs A1 //right sensor
+# define ls A2 //left sensor
 
 void setup() {
   Serial.begin(115200);
+  
+  pinMode(stop, OUTPUT);
+  pinMode(left, OUTPUT);
+  pinMode(right, OUTPUT);
+  
+  pinMode(fs, INPUT);
+  pinMode(rs, INPUT);
+  pinMode(ls, INPUT);
 }
 
 void loop() {
-  
+  Serial.println(analogRead(fs));
 }
 `.trim();
 
@@ -29,9 +38,9 @@ const outPins : number[] = [ 0, //stop or start
   1, //left
   2, //right
 ];
-const inPins : number[] = [ 4, //forward sensor
-    5, //left sensor
-    6 //right sensor
+const inPins : number[] = [ 0, //forward sensor
+  1, //right sensor
+  2, //left sensor
 ];
 
 // Set up toolbar
@@ -60,6 +69,8 @@ window.onload = async function (){
     element.id = pin.toString();
     document.body.appendChild(element);
   });
+
+
 }
 
 function executeProgram(hex: string) {
@@ -79,6 +90,10 @@ function executeProgram(hex: string) {
   runner.execute(cpu => {
     const time = formatTime(cpu.cycles / MHZ);
     statusLabel.textContent = "Simulation time: " + time;
+    inPins.forEach((pin) => {
+      const val = parseFloat(document.getElementById(pin.toString())?.textContent as string);
+      (runner as AVRRunner).adc.channelValues[pin] = val;
+    });
   });
 }
 
@@ -104,6 +119,7 @@ async function compileAndRun() {
 
 function SerialLog(text: any){
   compilerOutputText.textContent += text.toString();
+  //console.log(text.toString().replace(/(\r\n|\n|\r)/gm, ""));
 }
 
 function stopCode() {
@@ -126,6 +142,7 @@ script.src = document.documentURI + 'script.js';
 script.async = true;
 document.body.appendChild(script);
 
+
 function App() {
   return (
       <div>
@@ -135,13 +152,6 @@ function App() {
         <canvas id="canvas"/>
 
         <div className="app-container">
-          <p>
-            Controls: Hold W for movement <br />
-            Nothing else: Forward <br />
-            A: Rotate left <br />
-            D: Rotate right <br />
-            A and D: Backwards
-          </p>
           <div className={"code-editor"}>
             <div className="toolbar">
               <button id="run-button" >Run</button>
@@ -157,7 +167,9 @@ function App() {
           <div className={"toolbar"}>
             <div>Serial Monitor</div>
           </div>
-          <p id="compiler-output-text"/>
+          <ScrollToBottom className="scroll">
+            <p id="compiler-output-text"/>
+          </ScrollToBottom>
         </div>
 
         <script>

@@ -9,14 +9,14 @@ using namespace std;
 bool debug = false;
 
 //robot values
-float x = 6;
-float y = 0;
+float x = 33;
+float y = 8;
 float rotation = 0;
 float speed = 8;
 float rotationSpeed = 100;
-#define fsdist 6 //front sensor distance from middle
+#define fsdist 6.5f //front sensor distance from middle
 #define ssxdist 2 //side sensor distances from middle on x
-#define ssydist 3 //side sensor distances from middle on y
+#define ssydist 4.4f //side sensor distances from middle on y
 #define backdist 1.5f //back distance from middle
 
 //global variables
@@ -25,7 +25,7 @@ Camera3D camera;
 //functions
 void UpdateDrawFrame(void);
 int getPin(int pin);
-void setPin(int pin, int value);
+void setPin(int pin, float value);
 void Log(string text);
 void DrawMarker(Vector2 pos);
 float GetDistance(Vector2 start, Vector2 end, Vector2 sensorPos, float rot);
@@ -37,16 +37,23 @@ bool doIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2);
 //maze values
 #define MAZE_SIZE 22
 #define MAZE_THICKNESS 2
-#define POINTS 5
+#define POINTS 10
 float mazePoints[POINTS][2][2] = {
-        {{0, 0}, {0, 1}},
-        {{0, 1}, {1, 1}},
-        {{1, 1}, {1, 2}},
-        {{1, 2}, {-1, 2}},
-        {{-1, 2}, {-1, 3}}
+        {{0, 0}, {1, 0}},
+        {{0, 0}, {0, 3}},
+        {{0, 3}, {1, 3}},
+        {{0, 2}, {1, 2}},
+        {{1, 1}, {2, 1}},
+        {{2, 1}, {2, 0}},
+        {{2, 0}, {3, 0}},
+        {{3, 0}, {3, 3}},
+        {{3, 3}, {2, 3}},
+        {{2, 3}, {2, 2}}
 };
 
 Model robotModel;
+
+# define MAX_RANGE 128
 
 int main() {
     //window
@@ -95,8 +102,13 @@ void UpdateDrawFrame(void) {
     DrawModelEx(robotModel, pos, (Vector3){0, 1, 0}, rotation, (Vector3){2, 2, 2}, WHITE);
 
     Vector2 forwardSensorPos = { x + deg_sin(rotation) * fsdist, y + deg_cos(rotation) * fsdist };
-    Vector2 leftSensorPos = { x + deg_sin(90 - rotation) * ssxdist , y - deg_cos(90 - rotation) * ssxdist };
-    Vector2 rightSensorPos = {x + deg_sin(90 - rotation) * ssxdist , y + deg_cos(90 - rotation) * ssxdist};
+    Vector2 leftSensorX = { x + deg_sin(90 - rotation) * ssxdist , y - deg_cos(90 - rotation) * ssxdist };
+    Vector2 rightSensorX = { x - deg_sin(90 - rotation) * ssxdist , y + deg_cos(90 - rotation) * ssxdist };
+    Vector2 leftSensorPos = { leftSensorX.x + deg_sin(rotation) * ssydist, leftSensorX.y + deg_cos(rotation) * ssydist };
+    Vector2 rightSensorPos = { rightSensorX.x + deg_sin(rotation) * ssydist, rightSensorX.y + deg_cos(rotation) * ssydist };
+    //DrawMarker(forwardSensorPos);
+    //DrawMarker(leftSensorPos);
+    //DrawMarker(rightSensorPos);
     float forwardMin = -1;
     float rightMin = -1;
     float leftMin = -1;
@@ -134,19 +146,16 @@ void UpdateDrawFrame(void) {
         }*/
     }
 
-    //TODO SET PIN VALUES
-
+    //set pins
+    setPin(0, forwardMin > MAX_RANGE ? 5 : (forwardMin * 5) / MAX_RANGE);
+    setPin(1, rightMin > MAX_RANGE ? 5 : (rightMin * 5) / MAX_RANGE);
+    setPin(2, leftMin > MAX_RANGE ? 5 : (leftMin * 5) / MAX_RANGE);
 
     //robot movement
-    bool pin1 = false;
-    bool pin2 = false;
-    if (IsKeyDown(KEY_A)){
-        pin1 = true;
-    }
-    if (IsKeyDown(KEY_D)){
-        pin2 = true;
-    }
-    if (IsKeyDown(KEY_W)){
+    bool move = !debug ? getPin(0) : IsKeyDown(KEY_W);
+    bool pin1 = !debug ? getPin(1) : IsKeyDown(KEY_A);
+    bool pin2 = !debug ? getPin(2) : IsKeyDown(KEY_D);
+    if (move){
         if (!pin1 && !pin2){
             x += deg_sin(rotation) * speed * GetFrameTime();
             y += deg_cos(rotation) * speed * GetFrameTime();
@@ -173,8 +182,8 @@ void UpdateDrawFrame(void) {
     float biggerAngle2 = 90 - (rotation + biggerSubAngle);
     Vector2 topCorner2 = {x + deg_cos(biggerAngle2) * biggerHypotenuse, y + deg_sin(biggerAngle2) * biggerHypotenuse};
 
-    DrawMarker(topCorner1);
-    DrawMarker(topCorner2);
+    //DrawMarker(topCorner1);
+    //DrawMarker(topCorner2);
 
     float smallerHypotenuse = -sqrt(ssxdist * ssxdist + backdist * backdist);
     float smallerSubAngle = asin(ssxdist / smallerHypotenuse) * 180 / PI;
@@ -183,8 +192,8 @@ void UpdateDrawFrame(void) {
     float smallerAngle2 = 90 - (rotation + smallerSubAngle);
     Vector2 bottomCorner2 = {x + deg_cos(smallerAngle2) * smallerHypotenuse, y + deg_sin(smallerAngle2) * smallerHypotenuse};
 
-    DrawMarker(bottomCorner1);
-    DrawMarker(bottomCorner2);
+    //DrawMarker(bottomCorner1);
+    //DrawMarker(bottomCorner2);
     Vector2 robotEdges[4][2] = {
             { bottomCorner1, bottomCorner2 },
             { bottomCorner1, topCorner1 },
@@ -281,7 +290,7 @@ void UpdateDrawFrame(void) {
         rotation = prevRot;
     }
 
-    Log("left: " + to_string(leftMin) + ", right: " + to_string(rightMin) + ", forward: " + to_string(forwardMin));
+    //Log("left: " + to_string(leftMin) + ", right: " + to_string(rightMin) + ", forward: " + to_string(forwardMin));
 
     EndMode3D();
 
@@ -393,7 +402,7 @@ int getPin(int pin) {
         }, pin);
 }
 
-void setPin(int pin, int value) {
+void setPin(int pin, float value) {
     EM_ASM({
         setPin($0, $1)
         }, pin, value);

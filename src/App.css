@@ -17,5 +17,12 @@ body {
 
 .compiler-output{
   float: left;
-  width: 900px;
+  width: 500px;
+  height: 400px;
+  overflow: scroll;
+}
+
+.scroll{
+  width: 500px;
+  height: 400px;
 }
