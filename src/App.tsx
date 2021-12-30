@@ -114,7 +114,6 @@ window.onload = async function (){
 function executeProgram(hex: string) {
   runner = new AVRRunner(hex);
   const statusLabel = document.querySelector("#status-label") as Element;
-  const MHZ = 16000000;
 
   runner.portD.addListener(value => {
     outPins.forEach((pin) => {
@@ -127,7 +126,7 @@ function executeProgram(hex: string) {
   };
 
   runner.execute(cpu => {
-    const time = formatTime(cpu.cycles / MHZ);
+    const time = formatTime(cpu.cycles / (runner as AVRRunner).MHZ);
     statusLabel.textContent = "Simulation time: " + time;
     inPins.forEach((pin) => {
       const val = parseFloat(document.getElementById(pin.toString())?.textContent as string);
