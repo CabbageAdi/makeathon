@@ -1,6 +1,4 @@
 var statusElement = document.querySelector('#status');
-var progressElement = document.querySelector('#progress');
-var spinnerElement = document.querySelector('#spinner');
 var Module = {
     preRun: [],
     postRun: [],
@@ -41,15 +39,6 @@ var Module = {
 
         if (m) {
             text = m[1];
-            progressElement.value = parseInt(m[2])*100;
-            progressElement.max = parseInt(m[4])*100;
-            progressElement.hidden = true;
-            spinnerElement.hidden = false;
-        } else {
-            progressElement.value = null;
-            progressElement.max = null;
-            progressElement.hidden = true;
-            if (!text) spinnerElement.style.display = 'none';
         }
 
         statusElement.innerHTML = text;

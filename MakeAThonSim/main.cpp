@@ -95,7 +95,7 @@ Model robotModel;
 
 int main() {
     //window
-    int resolution = 50;
+    int resolution = 65;
     int screenWidth = 16 * resolution;
     int screenHeight = 9 * resolution;
     InitWindow(screenWidth, screenHeight, "RoboKnights Make-a-thon");
@@ -128,8 +128,7 @@ void UpdateDrawFrame(void) {
     ClearBackground(GREEN);
 
     //2d elements
-    DrawText("RoboKnights Make-a-thon", 5, 6, 14, BLACK);
-    DrawText("Made with <3 by Adi Mathur", 5, 22, 10, GRAY);
+
 
     //robot
     Vector3 pos = {x, 0, y};
@@ -344,6 +343,9 @@ void UpdateDrawFrame(void) {
     //Log("x: " + to_string(x) + ", y: " + to_string(y));
 
     EndMode3D();
+
+    DrawText("RoboKnights Make-a-thon", 5, 6, 14, BLACK);
+    DrawText("Made with <3 by Adi Mathur", 5, 22, 10, GRAY);
 
     EndDrawing();
 }
