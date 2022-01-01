@@ -389,7 +389,7 @@ all:
 
 # Project target defined by PROJECT_NAME
 $(PROJECT_NAME): $(OBJS)
-	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM) && cp sim.data ../public/sim.data && cp sim.wasm ../public/sim.wasm && cp sim ../public/sim
+	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM) && cp sim.data ../public/sim.data && cp sim.wasm ../public/sim.wasm && cp sim ../public/sim && rm sim && rm sim.data && rm sim.wasm
 
 # Compile source files
 # NOTE: This pattern will compile every module defined on $(OBJS)

@@ -9,12 +9,13 @@ using namespace std;
 bool debug = false;
 
 //robot values
-#define xDefault 33
-#define yDefault 8
+#define xDefault 77
+#define yDefault -11
+#define rotDefault 0
 
 float x = xDefault;
 float y = yDefault;
-float rotation = 0;
+float rotation = rotDefault;
 float speed = 10;
 float rotationSpeed = 100;
 #define fsdist 6.5f //front sensor distance from middle
@@ -22,10 +23,10 @@ float rotationSpeed = 100;
 #define ssydist 4.4f //side sensor distances from middle on y
 #define backdist 1.5f //back distance from middle
 
-#define EndYMin 3
-#define EndYMax 4
-#define EndXMin 3
-#define EndXMax 4
+#define EndYMin 8
+#define EndYMax 9
+#define EndXMin 4
+#define EndXMax 5
 
 //global variables
 Camera3D camera;
@@ -45,18 +46,45 @@ bool doIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2);
 //maze values
 #define MAZE_SIZE 22
 #define MAZE_THICKNESS 2
-#define POINTS 10
+#define POINTS 37
 float mazePoints[POINTS][2][2] = {
-        {{0, 0}, {1, 0}},
-        {{0, 0}, {0, 3}},
+        {{0, 0}, {0, 8}},
+        {{0, 0}, {3, 0}},
+        {{2, 0}, {2, 1}},
+        {{1, 1}, {1, 2}},
+        {{1, 2}, {3, 2}},
+        {{3, 2}, {3, 1}},
+        {{3, 1}, {4, 1}},
+        {{4, 1}, {4, 0}},
+        {{4, 0}, {8, 0}},
+        {{8, 0}, {8, 8}},
+        {{8, 8}, {5, 8}},
+        {{4, 8}, {0, 8}},
+        {{2, 2}, {2, 3}},
+        {{2, 3}, {5, 3}},
+        {{4, 2}, {4, 5}},
+        {{4, 5}, {5, 5}},
+        {{5, 6}, {5, 4}},
+        {{5, 4}, {7, 4}},
+        {{7, 2}, {7, 5}},
+        {{7, 2}, {5, 2}},
+        {{6, 2}, {6, 3}},
+        {{6, 0}, {6, 1}},
+        {{6, 1}, {5, 1}},
+        {{8, 1}, {7, 1}},
+        {{0, 7}, {2, 7}},
+        {{3, 8}, {3, 7}},
+        {{8, 6}, {7, 6}},
         {{0, 3}, {1, 3}},
-        {{0, 2}, {1, 2}},
-        {{1, 1}, {2, 1}},
-        {{2, 1}, {2, 0}},
-        {{2, 0}, {3, 0}},
-        {{3, 0}, {3, 3}},
-        {{3, 3}, {2, 3}},
-        {{2, 3}, {2, 2}}
+        {{1, 3}, {1, 6}},
+        {{1, 6}, {2, 6}},
+        {{1, 4}, {3, 4}},
+        {{3, 4}, {3, 6}},
+        {{3, 5}, {2, 5}},
+        {{3, 6}, {4, 6}},
+        {{4, 6}, {4, 7}},
+        {{4, 7}, {7, 7}},
+        {{6, 7}, {6, 5}}
 };
 
 Model robotModel;
@@ -68,12 +96,12 @@ int main() {
     int resolution = 50;
     int screenWidth = 16 * resolution;
     int screenHeight = 9 * resolution;
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    InitWindow(screenWidth, screenHeight, "RoboKnights Make-a-thon");
 
     //camera
-    camera.position = (Vector3) {5, 100.0f, 0};
-    camera.target = (Vector3) {0.0f, 0.0f, 0.0f};
-    camera.up = (Vector3) {0.0f, 1.0f, 0.0f};
+    camera.position = (Vector3) {MAZE_SIZE * 4, 230.0f, MAZE_SIZE * 4};
+    camera.target = (Vector3) {MAZE_SIZE * 4, 0.0f, MAZE_SIZE * 4};
+    camera.up = (Vector3) {90.0f, 0, 0.0f};
     camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
     SetCameraMode(camera, CAMERA_FREE);
@@ -98,7 +126,8 @@ void UpdateDrawFrame(void) {
     ClearBackground(GREEN);
 
     //2d elements
-    DrawText("RoboKnighs Make-a-thon", 5, 6, 1, BLACK);
+    DrawText("RoboKnights Make-a-thon", 5, 6, 14, BLACK);
+    DrawText("Made with <3 by Adi Mathur", 5, 22, 10, GRAY);
 
     //robot
     Vector3 pos = {x, 0, y};
@@ -109,6 +138,14 @@ void UpdateDrawFrame(void) {
     //3d
     BeginMode3D(camera);
     DrawGrid(200, 1);
+    //draw end
+    Vector3 endPos = {(EndXMax + EndXMin) * MAZE_SIZE / 2, 0, (EndYMax + EndYMin) * MAZE_SIZE / 2};
+    DrawCube(endPos, MAZE_SIZE + MAZE_THICKNESS, 2, MAZE_SIZE + MAZE_THICKNESS, BLUE);
+    //draw start
+    Vector3 startPos = {xDefault, 0, yDefault};
+    DrawCube(startPos, MAZE_SIZE + MAZE_THICKNESS, 2, MAZE_SIZE + MAZE_THICKNESS, RED);
+
+    //draw robot
     DrawModelEx(robotModel, pos, (Vector3){0, 1, 0}, rotation, (Vector3){2, 2, 2}, WHITE);
 
     Vector2 forwardSensorPos = { x + deg_sin(rotation) * fsdist, y + deg_cos(rotation) * fsdist };
@@ -116,9 +153,6 @@ void UpdateDrawFrame(void) {
     Vector2 rightSensorX = { x - deg_sin(90 - rotation) * ssxdist , y + deg_cos(90 - rotation) * ssxdist };
     Vector2 leftSensorPos = { leftSensorX.x + deg_sin(rotation) * ssydist, leftSensorX.y + deg_cos(rotation) * ssydist };
     Vector2 rightSensorPos = { rightSensorX.x + deg_sin(rotation) * ssydist, rightSensorX.y + deg_cos(rotation) * ssydist };
-    //DrawMarker(forwardSensorPos);
-    //DrawMarker(leftSensorPos);
-    //DrawMarker(rightSensorPos);
     float forwardMin = -1;
     float rightMin = -1;
     float leftMin = -1;
@@ -147,13 +181,6 @@ void UpdateDrawFrame(void) {
         if (right > 0 && (right < rightMin || rightMin == -1)){
             rightMin = right;
         }
-        //right
-/*        else if (left < 0){
-            float rightDist = -forward - (2 * ssxdist);
-            if (rightDist < rightMin || rightMin == -1){
-                rightMin = rightDist;
-            }
-        }*/
     }
 
     //set pins
@@ -234,14 +261,6 @@ void UpdateDrawFrame(void) {
             Vector2 line3e = {point1.x - MAZE_THICKNESS / 2, point1.y};
             Vector2 line4s = {point2.x + MAZE_THICKNESS / 2, point2.y};
             Vector2 line4e = {point2.x - MAZE_THICKNESS / 2, point2.y};
-            DrawMarker(line1s);
-            DrawMarker(line1e);
-            DrawMarker(line2s);
-            DrawMarker(line2e);
-            DrawMarker(line3s);
-            DrawMarker(line3e);
-            DrawMarker(line4s);
-            DrawMarker(line4e);
             for (int j = 0; j < 4; j++){
                 if (doIntersect(robotEdges[j][0], robotEdges[j][1], line1s, line1e) ||
                         doIntersect(robotEdges[j][0], robotEdges[j][1], line2s, line2e) ||
@@ -271,14 +290,6 @@ void UpdateDrawFrame(void) {
             Vector2 line3e = {point1.x, point1.y - MAZE_THICKNESS / 2};
             Vector2 line4s = {point2.x, point2.y + MAZE_THICKNESS / 2};
             Vector2 line4e = {point2.x, point2.y - MAZE_THICKNESS / 2};
-            DrawMarker(line1s);
-            DrawMarker(line1e);
-            DrawMarker(line2s);
-            DrawMarker(line2e);
-            DrawMarker(line3s);
-            DrawMarker(line3e);
-            DrawMarker(line4s);
-            DrawMarker(line4e);
             for (int j = 0; j < 4; j++){
                 if (doIntersect(robotEdges[j][0], robotEdges[j][1], line1s, line1e) ||
                     doIntersect(robotEdges[j][0], robotEdges[j][1], line2s, line2e) ||
@@ -303,7 +314,7 @@ void UpdateDrawFrame(void) {
     if (x > EndXMin * MAZE_SIZE && x < EndXMax * MAZE_SIZE && y > EndYMin * MAZE_SIZE && y < EndYMax * MAZE_SIZE){
         x = xDefault;
         y = yDefault;
-        rotation = 0;
+        rotation = rotDefault;
         setPin(4, 1);
     }
 

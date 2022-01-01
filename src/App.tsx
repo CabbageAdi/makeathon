@@ -7,6 +7,7 @@ import { formatTime } from "./format-time";
 import AceEditor from "react-ace";
 //@ts-ignore
 import ScrollToBottom from 'react-scroll-to-bottom';
+import "ace-builds/src-noconflict/mode-java";
 
 let CODE = `
 # define stop 0 //LOW is stop, HIGH is move
@@ -34,7 +35,9 @@ void setup() {
 }
 
 void loop() {
-  
+  float fdist = forward_dist();
+  float ldist = left_dist();
+  float rdist = right_dist();
 }
 
 bool is_mapped(){
@@ -132,6 +135,8 @@ window.onload = async function (){
 function executeProgram(hex: string) {
   runner = new AVRRunner(hex);
   const statusLabel = document.querySelector("#status-label") as Element;
+  let startTime = new Date().getTime();
+  let mapped = false;
 
   runner.portD.addListener(value => {
     outPins.forEach((pin) => {
@@ -143,15 +148,19 @@ function executeProgram(hex: string) {
   };
 
   runner.execute(cpu => {
-    const time = formatTime(cpu.cycles / (runner as AVRRunner).MHZ);
+    const time = formatTime((new Date().getTime() - startTime) / 1000);
     statusLabel.textContent = "Simulation time: " + time;
     inPins.forEach((pin) => {
       const val = parseFloat(document.getElementById(pin.toString())?.textContent as string);
       (runner as AVRRunner).adc.channelValues[pin] = val;
     });
     statePins.forEach(pin => {
-      const val = parseInt(document.getElementById(pin.toString())?.textContent as string) == 1 ? true : false;
+      const val = parseInt(document.getElementById(pin.toString())?.textContent as string) === 1 ? true : false;
       (runner as AVRRunner).portD.setPin(pin, val);
+      if (pin === 4 && val && !mapped){
+        mapped = true;
+        startTime = new Date().getTime();
+      }
     });
   });
 }
@@ -217,7 +226,7 @@ function App() {
               <div className="spacer"/>
               <div id="status-label"/>
             </div>
-            <AceEditor value={CODE} onChange={code => CODE = code } width={"auto"} fontSize={"15px"}/>
+            <AceEditor value={CODE} onChange={code => CODE = code } width={"auto"} fontSize={"15px"} mode={'java'}/>
           </div>
         </div>
 
