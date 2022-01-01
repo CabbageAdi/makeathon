@@ -35,9 +35,7 @@ void setup() {
 }
 
 void loop() {
-  float fdist = forward_dist();
-  float ldist = left_dist();
-  float rdist = right_dist();
+  
 }
 
 bool is_mapped(){
