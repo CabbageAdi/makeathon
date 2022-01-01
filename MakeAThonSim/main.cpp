@@ -205,8 +205,6 @@ void UpdateDrawFrame(void) {
     speed = (newSpeed / 255) * maxForwardSpeed;
     rotationSpeed = (newSpeed / 255) * maxRotSpeed;
 
-    Log("new: " + to_string(newSpeed) + "actual: " + to_string(speed));
-
     if (move){
         if (!pin1 && !pin2){
             x += deg_sin(rotation) * speed * GetFrameTime();
