@@ -128,6 +128,11 @@ window.onload = async function (){
     element.id = pin.toString();
     document.body.appendChild(element);
   });
+  //reset on stop
+  var element = document.createElement('div');
+  element.hidden = true;
+  element.id = "6out";
+  document.body.appendChild(element);
 }
 
 function executeProgram(hex: string) {
@@ -185,7 +190,6 @@ async function compileAndRun() {
 
 function SerialLog(text: any){
   compilerOutputText.textContent += text.toString();
-  //console.log(text.toString().replace(/(\r\n|\n|\r)/gm, ""));
 }
 
 function stopCode() {
@@ -196,6 +200,11 @@ function stopCode() {
     runner = null;
   }
   compilerOutputText.textContent = null;
+
+  setTimeout(function (){
+    (document.getElementById("6out") as Element).textContent = "1";
+  }, 200);
+  (document.getElementById("6out") as Element).textContent = "0";
 }
 
 //add scripts

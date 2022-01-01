@@ -317,6 +317,11 @@ void UpdateDrawFrame(void) {
         rotation = rotDefault;
         setPin(4, 1);
     }
+    if (getPin(6) == 1){
+        x = xDefault;
+        y = yDefault;
+        rotation = rotDefault;
+    }
 
     //Log("left: " + to_string(leftMin) + ", right: " + to_string(rightMin) + ", forward: " + to_string(forwardMin));
     Log("x: " + to_string(x) + ", y: " + to_string(y));
