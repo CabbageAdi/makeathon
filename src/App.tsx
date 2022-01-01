@@ -5,6 +5,7 @@ import { buildHex } from "./compile";
 import { AVRRunner } from "./execute";
 import { formatTime } from "./format-time";
 import AceEditor from "react-ace";
+import { ADCMuxInput, ADCMuxInputType, PinState } from 'avr8js';
 //@ts-ignore
 import ScrollToBottom from 'react-scroll-to-bottom';
 import "ace-builds/src-noconflict/mode-java";
@@ -22,16 +23,16 @@ let CODE = `
 
 void setup() {
   Serial.begin(115200);
-  
   pinMode(stop, OUTPUT);
   pinMode(left, OUTPUT);
   pinMode(right, OUTPUT);
-  
   pinMode(fs, INPUT);
   pinMode(rs, INPUT);
   pinMode(ls, INPUT);
-  
   pinMode(mapped, INPUT);
+  for (int i = 3; i < 11; i++)
+    pinMode(i, OUTPUT);
+  set_speed(255);
 }
 
 void loop() {
@@ -81,11 +82,31 @@ void right_turn(){
   digitalWrite(left, LOW);
   digitalWrite(right, HIGH);
 }
+
+void set_speed(byte speed){
+  int binaryNum[8];
+ 
+  int i = 0;
+  while (speed > 0) {
+    digitalWrite(i + 3, speed % 2 == 1 ? HIGH : LOW);
+    speed = speed / 2;
+    i++;
+  }
+}
 `.trim();
 
 const outPins : number[] = [ 0, //stop or start
-  1, //left
-  2, //right
+    1, //left
+    2, //right
+
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
 ];
 const inPins : number[] = [ 0, //forward sensor
   1, //right sensor
@@ -131,9 +152,11 @@ window.onload = async function (){
   //reset on stop
   var element = document.createElement('div');
   element.hidden = true;
-  element.id = "6out";
+  element.id = "12out";
   document.body.appendChild(element);
 }
+
+let speedData: boolean[] = [];
 
 function executeProgram(hex: string) {
   runner = new AVRRunner(hex);
@@ -143,7 +166,12 @@ function executeProgram(hex: string) {
 
   runner.portD.addListener(value => {
     outPins.forEach((pin) => {
-      (document.getElementById(pin.toString() + 'out') as Element).textContent = runner?.portD.pinState(pin).toString() ?? null;
+      if (pin < 8) (document.getElementById(pin.toString() + 'out') as Element).textContent = runner?.portD.pinState(pin).toString() ?? null;
+    });
+  });
+  runner.portB.addListener(value => {
+    outPins.forEach((pin) => {
+      if (pin > 7) (document.getElementById(pin.toString() + 'out') as Element).textContent = runner?.portB.pinState(pin - 8).toString() ?? null;
     });
   });
   runner.usart.onByteTransmit = (value: number) => {
@@ -188,8 +216,14 @@ async function compileAndRun() {
   }
 }
 
+let lastTime = 0;
 function SerialLog(text: any){
   compilerOutputText.textContent += text.toString();
+  const diff = new Date().getTime() - lastTime;
+  if (diff > 3){
+    console.log(diff);
+  }
+  lastTime = new Date().getTime();
 }
 
 function stopCode() {
@@ -201,9 +235,9 @@ function stopCode() {
   }
   compilerOutputText.textContent = null;
 
-  (document.getElementById("6out") as Element).textContent = "1";
+  (document.getElementById("12out") as Element).textContent = "1";
   setTimeout(function (){
-    (document.getElementById("6out") as Element).textContent = "0";
+    (document.getElementById("12out") as Element).textContent = "0";
   }, 200);
 
   outPins.forEach((pin) =>{

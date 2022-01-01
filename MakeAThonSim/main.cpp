@@ -12,12 +12,14 @@ bool debug = false;
 #define xDefault 77
 #define yDefault -11
 #define rotDefault 0
+#define maxForwardSpeed 10
+#define maxRotSpeed 100
 
 float x = xDefault;
 float y = yDefault;
 float rotation = rotDefault;
-float speed = 10;
-float rotationSpeed = 100;
+float speed = maxForwardSpeed;
+float rotationSpeed = maxRotSpeed;
 #define fsdist 6.5f //front sensor distance from middle
 #define ssxdist 2 //side sensor distances from middle on x
 #define ssydist 4.4f //side sensor distances from middle on y
@@ -192,6 +194,19 @@ void UpdateDrawFrame(void) {
     bool move = !debug ? getPin(0) : IsKeyDown(KEY_W);
     bool pin1 = !debug ? getPin(1) : IsKeyDown(KEY_A);
     bool pin2 = !debug ? getPin(2) : IsKeyDown(KEY_D);
+
+    float newSpeed = 0;
+    for (int i = 3; i < 11; i++){
+        int pin = getPin(i);
+        if (pin == 1){
+            newSpeed += pow(2, (i - 3));
+        }
+    }
+    speed = (newSpeed / 255) * maxForwardSpeed;
+    rotationSpeed = (newSpeed / 255) * maxRotSpeed;
+
+    Log("new: " + to_string(newSpeed) + "actual: " + to_string(speed));
+
     if (move){
         if (!pin1 && !pin2){
             x += deg_sin(rotation) * speed * GetFrameTime();
@@ -315,16 +330,20 @@ void UpdateDrawFrame(void) {
         x = xDefault;
         y = yDefault;
         rotation = rotDefault;
+        speed = maxForwardSpeed;
+        rotationSpeed = maxRotSpeed;
         setPin(4, 1);
     }
-    if (getPin(6) == 1){
+    if (getPin(12) == 1){
         x = xDefault;
         y = yDefault;
         rotation = rotDefault;
+        speed = maxForwardSpeed;
+        rotationSpeed = maxRotSpeed;
     }
 
     //Log("left: " + to_string(leftMin) + ", right: " + to_string(rightMin) + ", forward: " + to_string(forwardMin));
-    Log("x: " + to_string(x) + ", y: " + to_string(y));
+    //Log("x: " + to_string(x) + ", y: " + to_string(y));
 
     EndMode3D();
 

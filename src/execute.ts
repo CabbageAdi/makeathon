@@ -13,6 +13,7 @@ import {
     adcConfig
 } from "avr8js";
 import { loadHex } from "./intelhex";
+import { MicroTaskScheduler } from './task-scheduler';
 
 // ATmega328p params
 const FLASH = 0x8000;
