@@ -47,15 +47,15 @@ void brake(){
 }
 
 float forward_dist(){
-  return analogRead(fs) / 8;
+  return analogRead(fs) / 8.0;
 }
 
 float left_dist(){
-  return analogRead(ls) / 8;
+  return analogRead(ls) / 8.0;
 }
 
 float right_dist(){
-  return analogRead(rs) / 8;
+  return analogRead(rs) / 8.0;
 }
 
 void forward(){
