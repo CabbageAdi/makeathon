@@ -139,7 +139,7 @@ void UpdateDrawFrame(void) {
 
     //3d
     BeginMode3D(camera);
-    DrawGrid(200, 1);
+    DrawGrid(200, 4);
     //draw end
     Vector3 endPos = {(EndXMax + EndXMin) * MAZE_SIZE / 2, 0, (EndYMax + EndYMin) * MAZE_SIZE / 2};
     DrawCube(endPos, MAZE_SIZE + MAZE_THICKNESS, 2, MAZE_SIZE + MAZE_THICKNESS, BLUE);

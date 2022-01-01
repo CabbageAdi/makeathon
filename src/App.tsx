@@ -10,25 +10,25 @@ import ScrollToBottom from 'react-scroll-to-bottom';
 import "ace-builds/src-noconflict/mode-java";
 
 let CODE = `
-# define stop 0 //LOW is stop, HIGH is move
-# define left 1 //left 
-# define right 2 //right
+# define stop_pin 0 //LOW is stop, HIGH is move
+# define left_pin 1 //left 
+# define right_pin 2 //right
 
-# define fs A0 //forward sensor
-# define rs A1 //right sensor
-# define ls A2 //left sensor
+# define fs_pin A0 //forward sensor
+# define rs_pin A1 //right sensor
+# define ls_pin A2 //left sensor
 
-# define mapped 4 //set to high if first run is complete
+# define mapped_pin 4 //set to high if first run is complete
 
 void setup() {
   Serial.begin(115200);
-  pinMode(stop, OUTPUT);
-  pinMode(left, OUTPUT);
-  pinMode(right, OUTPUT);
-  pinMode(fs, INPUT);
-  pinMode(rs, INPUT);
-  pinMode(ls, INPUT);
-  pinMode(mapped, INPUT);
+  pinMode(stop_pin, OUTPUT);
+  pinMode(left_pin, OUTPUT);
+  pinMode(right_pin, OUTPUT);
+  pinMode(fs_pin, INPUT);
+  pinMode(rs_pin, INPUT);
+  pinMode(ls_pin, INPUT);
+  pinMode(mapped_pin, INPUT);
   for (int i = 3; i < 11; i++)
     pinMode(i, OUTPUT);
   set_speed(255);
@@ -39,47 +39,47 @@ void loop() {
 }
 
 bool is_mapped(){
-  return digitalRead(mapped) == HIGH ? true : false;
+  return digitalRead(mapped_pin) == HIGH ? true : false;
 }
 
 void brake(){
-  digitalWrite(stop, LOW);
+  digitalWrite(stop_pin, LOW);
 }
 
 float forward_dist(){
-  return analogRead(fs) / 8.0;
+  return analogRead(fs_pin) / 8.0;
 }
 
 float left_dist(){
-  return analogRead(ls) / 8.0;
+  return analogRead(ls_pin) / 8.0;
 }
 
 float right_dist(){
-  return analogRead(rs) / 8.0;
+  return analogRead(rs_pin) / 8.0;
 }
 
 void forward(){
-  digitalWrite(stop, HIGH);
-  digitalWrite(left, LOW);
-  digitalWrite(right, LOW);
+  digitalWrite(stop_pin, HIGH);
+  digitalWrite(left_pin, LOW);
+  digitalWrite(right_pin, LOW);
 }
 
 void back(){
-  digitalWrite(stop, HIGH);
-  digitalWrite(left, HIGH);
-  digitalWrite(right, HIGH);
+  digitalWrite(stop_pin, HIGH);
+  digitalWrite(left_pin, HIGH);
+  digitalWrite(right_pin, HIGH);
 }
 
 void left_turn(){
-  digitalWrite(stop, HIGH);
-  digitalWrite(left, HIGH);
-  digitalWrite(right, LOW);
+  digitalWrite(stop_pin, HIGH);
+  digitalWrite(left_pin, HIGH);
+  digitalWrite(right_pin, LOW);
 }
 
 void right_turn(){
-  digitalWrite(stop, HIGH);
-  digitalWrite(left, LOW);
-  digitalWrite(right, HIGH);
+  digitalWrite(stop_pin, HIGH);
+  digitalWrite(left_pin, LOW);
+  digitalWrite(right_pin, HIGH);
 }
 
 void set_speed(byte speed){
