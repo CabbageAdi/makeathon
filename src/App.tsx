@@ -201,10 +201,20 @@ function stopCode() {
   }
   compilerOutputText.textContent = null;
 
+  (document.getElementById("6out") as Element).textContent = "1";
   setTimeout(function (){
-    (document.getElementById("6out") as Element).textContent = "1";
+    (document.getElementById("6out") as Element).textContent = "0";
   }, 200);
-  (document.getElementById("6out") as Element).textContent = "0";
+
+  outPins.forEach((pin) =>{
+    (document.getElementById(pin.toString() + 'out') as Element).textContent = null;
+  });
+  inPins.forEach((pin) =>{
+    (document.getElementById(pin.toString()) as Element).textContent = null;
+  });
+  statePins.forEach((pin) =>{
+    (document.getElementById(pin.toString()) as Element).textContent = null;
+  });
 }
 
 //add scripts
