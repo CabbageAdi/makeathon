@@ -5,7 +5,6 @@ import { buildHex } from "./compile";
 import { AVRRunner } from "./execute";
 import { formatTime } from "./format-time";
 import AceEditor from "react-ace";
-import { ADCMuxInput, ADCMuxInputType, PinState } from 'avr8js';
 //@ts-ignore
 import ScrollToBottom from 'react-scroll-to-bottom';
 import "ace-builds/src-noconflict/mode-java";
@@ -155,8 +154,6 @@ window.onload = async function (){
   element.id = "12out";
   document.body.appendChild(element);
 }
-
-let speedData: boolean[] = [];
 
 function executeProgram(hex: string) {
   runner = new AVRRunner(hex);
