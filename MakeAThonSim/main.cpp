@@ -93,6 +93,8 @@ Model robotModel;
 
 # define MAX_RANGE 128
 
+bool mapped = false;
+
 int main() {
     //window
     int resolution = 65;
@@ -108,7 +110,8 @@ int main() {
     camera.projection = CAMERA_PERSPECTIVE;
     SetCameraMode(camera, CAMERA_FREE);
 
-    setPin(4, 0);
+    setPin(11, 0);
+    setPin(13, 0);
 
     robotModel = LoadModel("resources/mazesolver.obj");
 
@@ -324,12 +327,18 @@ void UpdateDrawFrame(void) {
     }
 
     if (x > EndXMin * MAZE_SIZE && x < EndXMax * MAZE_SIZE && y > EndYMin * MAZE_SIZE && y < EndYMax * MAZE_SIZE){
+        if (mapped){
+            setPin(11, 1);
+            mapped = true;
+        }
+        else{
+            setPin(13, 1);
+        }
         x = xDefault;
         y = yDefault;
         rotation = rotDefault;
         speed = maxForwardSpeed;
         rotationSpeed = maxRotSpeed;
-        setPin(4, 1);
     }
     if (getPin(12) == 1){
         x = xDefault;

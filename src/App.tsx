@@ -113,7 +113,8 @@ const inPins: number[] = [0, //forward sensor
 ];
 
 const statePins: number[] = [
-    4, //finished first run
+    11, //finished first run
+    13 //finished entire thing
 ];
 
 // Set up toolbar
@@ -122,6 +123,9 @@ let runner: AVRRunner | null;
 let runButton: Element;
 let stopButton: Element;
 let compilerOutputText: Element;
+let submitButton: HTMLButtonElement;
+
+let finishTime: number;
 
 window.onload = async function () {
     runButton = document.querySelector("#run-button") as Element;
@@ -129,6 +133,8 @@ window.onload = async function () {
     stopButton = document.querySelector("#stop-button") as Element;
     stopButton.addEventListener("click", stopCode);
     compilerOutputText = document.querySelector("#compiler-output-text") as Element;
+    submitButton = document.getElementById("submit") as HTMLButtonElement;
+    submitButton.addEventListener("click", submit);
 
     outPins.forEach((pin) => {
         var element = document.createElement('div');
@@ -176,18 +182,24 @@ function executeProgram(hex: string) {
     };
 
     runner.execute(cpu => {
-        const time = formatTime((new Date().getTime() - startTime) / 1000);
-        statusLabel.textContent = "Simulation time: " + time;
+        const time = (new Date().getTime() - startTime) / 1000
+        const formattedTime = formatTime(time);
+        statusLabel.textContent = "Simulation time: " + formattedTime;
         inPins.forEach((pin) => {
             const val = parseFloat(document.getElementById(pin.toString())?.textContent as string);
             (runner as AVRRunner).adc.channelValues[pin] = val;
         });
         statePins.forEach(pin => {
             const val = parseInt(document.getElementById(pin.toString())?.textContent as string) === 1 ? true : false;
-            (runner as AVRRunner).portD.setPin(pin, val);
-            if (pin === 4 && val && !mapped) {
+            (runner as AVRRunner).portB.setPin(pin - 8, val);
+            if (pin === 11 && val && !mapped) {
                 mapped = true;
                 startTime = new Date().getTime();
+            }
+            if (pin === 13 && val){
+                finishTime = time;
+                submitButton.hidden = false;
+                stopCode();
             }
         });
     });
@@ -195,6 +207,8 @@ function executeProgram(hex: string) {
 
 async function compileAndRun() {
     compilerOutputText.textContent = "Compiling..."
+    submitButton.hidden = true;
+    finishTime = 0;
 
     runButton.setAttribute("disabled", "1");
     try {
@@ -213,15 +227,8 @@ async function compileAndRun() {
     }
 }
 
-let lastTime = 0;
-
 function SerialLog(text: any) {
     compilerOutputText.textContent += text.toString();
-    const diff = new Date().getTime() - lastTime;
-    if (diff > 3) {
-        console.log(diff);
-    }
-    lastTime = new Date().getTime();
 }
 
 function stopCode() {
@@ -249,6 +256,20 @@ function stopCode() {
     });
 }
 
+async function submit(){
+    await fetch('url', {
+        method: "POST",
+        body: JSON.stringify({
+            code: CODE,
+            time: finishTime
+        }),
+        headers: {
+            "content-type": "application/json"
+        }
+    });
+    submitButton.hidden = true;
+}
+
 //add scripts
 let script2 = document.createElement('script');
 script2.src = document.documentURI + 'sim';
@@ -262,6 +283,7 @@ document.body.appendChild(script);
 function App() {
     return (
         <div>
+            <button className={"button"} id={"submit"} hidden>Submit</button>
             <div id="status">Downloading...</div>
             <canvas id="canvas"/>
             <br/>
