@@ -209,6 +209,9 @@ async function compileAndRun() {
     compilerOutputText.textContent = "Compiling..."
     submitButton.hidden = true;
     finishTime = 0;
+    statePins.forEach(pin => {
+        (document.getElementById(pin.toString()) as Element).textContent = "0";
+    };
 
     runButton.setAttribute("disabled", "1");
     try {
