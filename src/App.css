@@ -56,3 +56,9 @@ body {
 .scroll {
     height: 500px;
 }
+
+#submit {
+    height: 65px;
+    width: 150px;
+    font-size: 35px;
+}

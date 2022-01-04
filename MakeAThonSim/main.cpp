@@ -91,6 +91,7 @@ float mazePoints[POINTS][2][2] = {
 Model robotModel;
 
 # define MAX_RANGE 128
+# define ROTATION_MULTIPLIER 3
 
 bool mapped = false;
 
@@ -187,6 +188,7 @@ void UpdateDrawFrame(void) {
     setPin(0, forwardMin > MAX_RANGE ? 5 : (forwardMin * 5) / MAX_RANGE);
     setPin(1, rightMin > MAX_RANGE ? 5 : (rightMin * 5) / MAX_RANGE);
     setPin(2, leftMin > MAX_RANGE ? 5 : (leftMin * 5) / MAX_RANGE);
+    setPin(3, rotation > 0 ? (((int)rotation % 360) / 360.0) * ((360 * ROTATION_MULTIPLIER) / 1023) * 5 : (((int)rotation % 360 + 360) / 360.0) * ((360 * ROTATION_MULTIPLIER) / 1023) * 5);
 
     //robot movement
     bool move = !debug ? getPin(0) : IsKeyDown(KEY_W);
@@ -321,11 +323,11 @@ void UpdateDrawFrame(void) {
 
     if (x > EndXMin * MAZE_SIZE && x < EndXMax * MAZE_SIZE && y > EndYMin * MAZE_SIZE && y < EndYMax * MAZE_SIZE){
         if (mapped){
-            setPin(11, 1);
+            setPin(11, 1); //set mapped pin to true
             mapped = true;
         }
         else{
-            setPin(13, 1);
+            setPin(13, 1); //signal finished to website
         }
         x = xDefault;
         y = yDefault;
@@ -333,7 +335,7 @@ void UpdateDrawFrame(void) {
         speed = maxForwardSpeed;
         rotationSpeed = maxRotSpeed;
     }
-    if (getPin(12) == 1){
+    if (getPin(12) == 1){ //arduino program stopped
         x = xDefault;
         y = yDefault;
         rotation = rotDefault;

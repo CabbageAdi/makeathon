@@ -17,6 +17,7 @@ let CODE = `
 # define fs_pin A0 //forward sensor
 # define rs_pin A1 //right sensor
 # define ls_pin A2 //left sensor
+# define rotation_pin A3 //rotation
 
 # define mapped_pin 4 //set to high if first run is complete
 
@@ -29,9 +30,11 @@ void setup() {
   pinMode(rs_pin, INPUT);
   pinMode(ls_pin, INPUT);
   pinMode(mapped_pin, INPUT);
+  pinMode(rotation_pin, INPUT);
   for (int i = 3; i < 11; i++)
     pinMode(i, OUTPUT);
   set_speed(255);
+  delay(1000);
 }
 
 void loop() {
@@ -44,6 +47,10 @@ bool is_mapped(){
 
 void brake(){
   digitalWrite(stop_pin, LOW);
+}
+
+float rotation() {
+ return analogRead(rotation_pin) / 3.0;
 }
 
 float forward_dist(){
@@ -105,11 +112,12 @@ const outPins: number[] = [0, //stop or start
     7,
     8,
     9,
-    10
+    10 //speed pins
 ];
 const inPins: number[] = [0, //forward sensor
     1, //right sensor
     2, //left sensor
+    3 //rotation
 ];
 
 const statePins: number[] = [
@@ -260,7 +268,7 @@ function stopCode() {
 }
 
 async function submit(){
-    await fetch('url', {
+    /*await fetch('url', {
         method: "POST",
         body: JSON.stringify({
             code: CODE,
@@ -269,7 +277,7 @@ async function submit(){
         headers: {
             "content-type": "application/json"
         }
-    });
+    });*/
     submitButton.hidden = true;
 }
 
