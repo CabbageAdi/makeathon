@@ -268,7 +268,7 @@ function stopCode() {
 }
 
 async function submit(){
-    /*await fetch('url', {
+    await fetch('url', {
         method: "POST",
         body: JSON.stringify({
             code: CODE,
@@ -277,7 +277,7 @@ async function submit(){
         headers: {
             "content-type": "application/json"
         }
-    });*/
+    });
     submitButton.hidden = true;
 }
 
