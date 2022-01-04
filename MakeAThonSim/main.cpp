@@ -48,7 +48,7 @@ bool doIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2);
 //maze values
 #define MAZE_SIZE 22
 #define MAZE_THICKNESS 2
-#define POINTS 37
+#define POINTS 43
 float mazePoints[POINTS][2][2] = {
         {{0, 0}, {0, 8}},
         {{0, 0}, {3, 0}},
@@ -86,7 +86,14 @@ float mazePoints[POINTS][2][2] = {
         {{3, 6}, {4, 6}},
         {{4, 6}, {4, 7}},
         {{4, 7}, {7, 7}},
-        {{6, 7}, {6, 5}}
+        {{6, 7}, {6, 5}},
+
+        {{3, 0}, {3, -1}},
+        {{3, -1}, {4, -1}},
+        {{4, -1}, {4, 0}},
+        {{4, 8}, {4, 9}},
+        {{4, 9}, {5, 9}},
+        {{5, 9}, {5, 8}}
 };
 
 Model robotModel;
