@@ -244,7 +244,7 @@ void UpdateDrawFrame(void) {
     setPin(0, forwardMin > MAX_RANGE ? 5 : (forwardMin * 5) / MAX_RANGE);
     setPin(1, rightMin > MAX_RANGE ? 5 : (rightMin * 5) / MAX_RANGE);
     setPin(2, leftMin > MAX_RANGE ? 5 : (leftMin * 5) / MAX_RANGE);
-    setPin(3, ((360 - ((int)rotation % 360 + (((int)rotation % 360) > 0 ? 0 : 360))) / 1023.0) * 5);
+    setPin(3, ((((int)rotation % 360 + (((int)rotation % 360) > 0 ? 0 : 360))) / 1023.0) * 5);
 
     //intersection checking
     Vector2 robotEdges[4][2] = {
