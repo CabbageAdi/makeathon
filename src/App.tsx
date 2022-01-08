@@ -37,15 +37,9 @@ void setup() {
   delay(1000);
 }
 
-int s = 0;
 void loop() {
-  set_speed(s);
-  Serial.println(s);
-  s += 10;
-  if (s > 255) s = 0;
-  delay(1000);
+  
 }
-
 
 bool is_mapped(){
   return digitalRead(mapped_pin) == HIGH ? true : false;
