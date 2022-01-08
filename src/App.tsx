@@ -50,7 +50,7 @@ void brake(){
 }
 
 float rotation() {
- return analogRead(rotation_pin) / 3.0;
+ return analogRead(rotation_pin);
 }
 
 float forward_dist(){
@@ -134,6 +134,16 @@ let compilerOutputText: Element;
 let submitButton: HTMLButtonElement;
 
 let finishTime: number;
+
+//add scripts
+let script2 = document.createElement('script');
+script2.src = document.documentURI + 'sim';
+script2.async = true;
+document.body.appendChild(script2);
+let script = document.createElement('script');
+script.src = document.documentURI + 'script.js';
+script.async = true;
+document.body.appendChild(script);
 
 window.onload = async function () {
     runButton = document.querySelector("#run-button") as Element;
@@ -280,16 +290,6 @@ async function submit(){
     });
     submitButton.hidden = true;
 }
-
-//add scripts
-let script2 = document.createElement('script');
-script2.src = document.documentURI + 'sim';
-script2.async = true;
-document.body.appendChild(script2);
-let script = document.createElement('script');
-script.src = document.documentURI + 'script.js';
-script.async = true;
-document.body.appendChild(script);
 
 function App() {
     return (

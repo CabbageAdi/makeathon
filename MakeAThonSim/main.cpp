@@ -149,61 +149,22 @@ void UpdateDrawFrame(void) {
     //draw robot
     DrawModelEx(robotModel, pos, (Vector3){0, 1, 0}, rotation, (Vector3){2, 2, 2}, WHITE);
 
-    Vector2 forwardSensorPos = { x + deg_sin(rotation) * fsdist, y + deg_cos(rotation) * fsdist };
-    Vector2 leftSensorX = { x + deg_sin(90 - rotation) * ssxdist , y - deg_cos(90 - rotation) * ssxdist };
-    Vector2 rightSensorX = { x - deg_sin(90 - rotation) * ssxdist , y + deg_cos(90 - rotation) * ssxdist };
-    Vector2 leftSensorPos = { leftSensorX.x + deg_sin(rotation) * ssydist, leftSensorX.y + deg_cos(rotation) * ssydist };
-    Vector2 rightSensorPos = { rightSensorX.x + deg_sin(rotation) * ssydist, rightSensorX.y + deg_cos(rotation) * ssydist };
-    float forwardMin = -1;
-    float rightMin = -1;
-    float leftMin = -1;
-    //maze drawing
-    for (int i = 0; i < POINTS; i++){
-        Vector2 start = { mazePoints[i][0][0] * MAZE_SIZE, mazePoints[i][0][1] * MAZE_SIZE };
-        Vector2 end = { mazePoints[i][1][0] * MAZE_SIZE, mazePoints[i][1][1] * MAZE_SIZE };
-
-        //cuboid drawing
-        Vector3 midpoint = {(start.x + end.x) / 2,0.5f, (start.y + end.y) / 2};
-        DrawCube(midpoint, start.x == end.x ? MAZE_THICKNESS : fabsf(start.x - end.x) + MAZE_THICKNESS, 5 , start.y == end.y ? MAZE_THICKNESS : fabsf(start.y - end.y) + MAZE_THICKNESS, BLACK);
-
-        //sensor values
-        //forward
-        float forward = GetDistance(start, end, forwardSensorPos, rotation);
-        if (forward > 0 && (forward < forwardMin || forwardMin == -1)){
-            forwardMin = forward;
-        }
-        //left
-        float left = GetDistance(start, end, leftSensorPos, rotation + 90);
-        if (left > 0 && (left < leftMin || leftMin == -1)){
-            leftMin = left;
-        }
-        //right
-        float right = GetDistance(start, end, rightSensorPos, rotation - 90);
-        if (right > 0 && (right < rightMin || rightMin == -1)){
-            rightMin = right;
-        }
-    }
-
-    //set pins
-    setPin(0, forwardMin > MAX_RANGE ? 5 : (forwardMin * 5) / MAX_RANGE);
-    setPin(1, rightMin > MAX_RANGE ? 5 : (rightMin * 5) / MAX_RANGE);
-    setPin(2, leftMin > MAX_RANGE ? 5 : (leftMin * 5) / MAX_RANGE);
-    setPin(3, rotation > 0 ? (((int)rotation % 360) / 360.0) * ((360 * ROTATION_MULTIPLIER) / 1023) * 5 : (((int)rotation % 360 + 360) / 360.0) * ((360 * ROTATION_MULTIPLIER) / 1023) * 5);
-
     //robot movement
     bool move = !debug ? getPin(0) : IsKeyDown(KEY_W);
     bool pin1 = !debug ? getPin(1) : IsKeyDown(KEY_A);
     bool pin2 = !debug ? getPin(2) : IsKeyDown(KEY_D);
 
-    float newSpeed = 0;
-    for (int i = 3; i < 11; i++){
-        int pin = getPin(i);
-        if (pin == 1){
-            newSpeed += pow(2, (i - 3));
+    if (!debug){
+        float newSpeed = 0;
+        for (int i = 3; i < 11; i++){
+            int pin = getPin(i);
+            if (pin == 1){
+                newSpeed += pow(2, (i - 3));
+            }
         }
+        speed = (newSpeed / 255) * maxForwardSpeed;
+        rotationSpeed = (newSpeed / 255) * maxRotSpeed;
     }
-    speed = (newSpeed / 255) * maxForwardSpeed;
-    rotationSpeed = (newSpeed / 255) * maxRotSpeed;
 
     if (move){
         if (!pin1 && !pin2){
@@ -222,7 +183,6 @@ void UpdateDrawFrame(void) {
         }
     }
 
-    //intersection checking
     //robot lines
     //WHAT IS THIS VARIABLE NAMING (if it works don't try to understand or change it)
     float biggerHypotenuse = sqrt(ssxdist * ssxdist + fsdist * fsdist);
@@ -239,8 +199,54 @@ void UpdateDrawFrame(void) {
     float smallerAngle2 = 90 - (rotation + smallerSubAngle);
     Vector2 bottomCorner2 = {x + deg_cos(smallerAngle2) * smallerHypotenuse, y + deg_sin(smallerAngle2) * smallerHypotenuse};
 
-    //DrawMarker(bottomCorner1);
-    //DrawMarker(bottomCorner2);
+    DrawMarker(topCorner1);
+    DrawMarker(topCorner2);
+
+    Vector2 leftSensorX = { x + deg_sin(90 - rotation) * ssxdist , y - deg_cos(90 - rotation) * ssxdist };
+    Vector2 rightSensorX = { x - deg_sin(90 - rotation) * ssxdist , y + deg_cos(90 - rotation) * ssxdist };
+    Vector2 leftSensorPos = { leftSensorX.x + deg_sin(rotation) * ssydist, leftSensorX.y + deg_cos(rotation) * ssydist };
+    Vector2 rightSensorPos = { rightSensorX.x + deg_sin(rotation) * ssydist, rightSensorX.y + deg_cos(rotation) * ssydist };
+    float forwardMin = -1;
+    float rightMin = -1;
+    float leftMin = -1;
+    //maze drawing
+    for (int i = 0; i < POINTS; i++){
+        Vector2 start = { mazePoints[i][0][0] * MAZE_SIZE, mazePoints[i][0][1] * MAZE_SIZE };
+        Vector2 end = { mazePoints[i][1][0] * MAZE_SIZE, mazePoints[i][1][1] * MAZE_SIZE };
+
+        //cuboid drawing
+        Vector3 midpoint = {(start.x + end.x) / 2,0.5f, (start.y + end.y) / 2};
+        DrawCube(midpoint, start.x == end.x ? MAZE_THICKNESS : fabsf(start.x - end.x) + MAZE_THICKNESS, 5 , start.y == end.y ? MAZE_THICKNESS : fabsf(start.y - end.y) + MAZE_THICKNESS, BLACK);
+
+        //sensor values
+        //forward
+        float forward = GetDistance(start, end, topCorner1, rotation);
+        if (forward > 0 && (forward < forwardMin || forwardMin == -1)){
+            forwardMin = forward;
+        }
+        float forward2 = GetDistance(start, end, topCorner2, rotation);
+        if (forward2 > 0 && (forward2 < forwardMin || forwardMin == -1)){
+            forwardMin = forward2;
+        }
+        //left
+        float left = GetDistance(start, end, leftSensorPos, rotation + 90);
+        if (left > 0 && (left < leftMin || leftMin == -1)){
+            leftMin = left;
+        }
+        //right
+        float right = GetDistance(start, end, rightSensorPos, rotation - 90);
+        if (right > 0 && (right < rightMin || rightMin == -1)){
+            rightMin = right;
+        }
+    }
+
+    //set pins
+    setPin(0, forwardMin > MAX_RANGE ? 5 : (forwardMin * 5) / MAX_RANGE);
+    setPin(1, rightMin > MAX_RANGE ? 5 : (rightMin * 5) / MAX_RANGE);
+    setPin(2, leftMin > MAX_RANGE ? 5 : (leftMin * 5) / MAX_RANGE);
+    setPin(3, ((360 - ((int)rotation % 360 + (((int)rotation % 360) > 0 ? 0 : 360))) / 1023.0) * 5);
+
+    //intersection checking
     Vector2 robotEdges[4][2] = {
             { bottomCorner1, bottomCorner2 },
             { bottomCorner1, topCorner1 },
@@ -342,6 +348,8 @@ void UpdateDrawFrame(void) {
         speed = maxForwardSpeed;
         rotationSpeed = maxRotSpeed;
     }
+
+    //if (debug) Log("forward: " + to_string(forwardMin) + ", can move: " + to_string(!intersecting));
 
     EndMode3D();
 
