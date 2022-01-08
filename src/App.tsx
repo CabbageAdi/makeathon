@@ -37,9 +37,15 @@ void setup() {
   delay(1000);
 }
 
+int s = 0;
 void loop() {
-  
+  set_speed(s);
+  Serial.println(s);
+  s += 10;
+  if (s > 255) s = 0;
+  delay(1000);
 }
+
 
 bool is_mapped(){
   return digitalRead(mapped_pin) == HIGH ? true : false;
@@ -90,14 +96,13 @@ void right_turn(){
 }
 
 void set_speed(byte speed){
-  int binaryNum[8];
- 
-  int i = 0;
+  int i = 3;
   while (speed > 0) {
-    digitalWrite(i + 3, speed % 2 == 1 ? HIGH : LOW);
+    digitalWrite(i, speed % 2 == 1 ? HIGH : LOW);
     speed = speed / 2;
     i++;
   }
+  for (;i < 11; i++) digitalWrite(i, LOW);
 }
 `.trim();
 

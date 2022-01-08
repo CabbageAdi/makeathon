@@ -349,8 +349,6 @@ void UpdateDrawFrame(void) {
         rotationSpeed = maxRotSpeed;
     }
 
-    //if (debug) Log("forward: " + to_string(forwardMin) + ", can move: " + to_string(!intersecting));
-
     EndMode3D();
 
     //text
