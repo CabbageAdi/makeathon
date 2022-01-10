@@ -12,7 +12,7 @@ bool debug = false;
 #define xDefault 77
 #define yDefault -11
 #define rotDefault 0
-#define maxForwardSpeed 10
+#define maxForwardSpeed 20
 #define maxRotSpeed 100
 
 float x = xDefault;
@@ -328,7 +328,7 @@ void UpdateDrawFrame(void) {
     }
 
     if (x > EndXMin * MAZE_SIZE && x < EndXMax * MAZE_SIZE && y > EndYMin * MAZE_SIZE && y < EndYMax * MAZE_SIZE){
-        if (mapped){
+        if (!mapped){
             setPin(11, 1); //set mapped pin to true
             mapped = true;
         }
