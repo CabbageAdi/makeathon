@@ -150,7 +150,6 @@ document.body.appendChild(script);
 
 window.onload = async function () {
   runButton = document.querySelector("#run-button") as Element;
-  runButton.addEventListener("click", compileAndRun);
   stopButton = document.querySelector("#stop-button") as Element;
   stopButton.addEventListener("click", stopCode);
   compilerOutputText = document.querySelector(
@@ -335,7 +334,8 @@ function App() {
           >
             Editor
           </button>
-          <button id="run-button" className={"button success"}>
+          <button id="run-button" className={"button success"} onClick={() =>{ setSerial(true)
+          compileAndRun()}}>
             Run
           </button>
           <button id="stop-button" className={"button danger"} disabled>
