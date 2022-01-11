@@ -152,9 +152,7 @@ window.onload = async function () {
   runButton = document.querySelector("#run-button") as Element;
   stopButton = document.querySelector("#stop-button") as Element;
   stopButton.addEventListener("click", stopCode);
-  compilerOutputText = document.querySelector(
-    "#compiler-output-text"
-  ) as Element;
+  compilerOutputText = document.getElementById("compiler-output-text") as Element;
   submitButton = document.getElementById("submit") as HTMLButtonElement;
   submitButton.addEventListener("click", submit);
 
@@ -193,7 +191,7 @@ function executeProgram(hex: string) {
     outPins.forEach((pin) => {
       if (pin < 8)
         (
-          document.getElementById(pin.toString() + "out") as Element
+            document.getElementById(pin.toString() + "out") as Element
         ).textContent = runner?.portD.pinState(pin).toString() ?? null;
     });
   });
@@ -201,7 +199,7 @@ function executeProgram(hex: string) {
     outPins.forEach((pin) => {
       if (pin > 7)
         (
-          document.getElementById(pin.toString() + "out") as Element
+            document.getElementById(pin.toString() + "out") as Element
         ).textContent = runner?.portB.pinState(pin - 8).toString() ?? null;
     });
   });
@@ -215,17 +213,17 @@ function executeProgram(hex: string) {
     statusLabel.textContent = "Simulation time: " + formattedTime;
     inPins.forEach((pin) => {
       const val = parseFloat(
-        document.getElementById(pin.toString())?.textContent as string
+          document.getElementById(pin.toString())?.textContent as string
       );
       (runner as AVRRunner).adc.channelValues[pin] = val;
     });
     statePins.forEach((pin) => {
       const val =
-        parseInt(
-          document.getElementById(pin.toString())?.textContent as string
-        ) === 1
-          ? true
-          : false;
+          parseInt(
+              document.getElementById(pin.toString())?.textContent as string
+          ) === 1
+              ? true
+              : false;
       (runner as AVRRunner).portB.setPin(pin - 8, val);
       if (pin === 11 && val && !mapped) {
         mapped = true;
@@ -241,6 +239,8 @@ function executeProgram(hex: string) {
 }
 
 async function compileAndRun() {
+  while (document.getElementById("compiler-output-text") === null) {await new Promise(resolve => setTimeout(resolve, 0));} //wait
+  compilerOutputText = document.getElementById("compiler-output-text") as Element;
   compilerOutputText.textContent = "Compiling...";
   submitButton.hidden = true;
   finishTime = 0;
@@ -254,7 +254,7 @@ async function compileAndRun() {
     compilerOutputText.textContent = result.stderr || result.stdout;
     if (result.hex) {
       compilerOutputText.textContent +=
-        "\nProgram running.\n\nSerial Output:\n";
+          "\nProgram running.\n\nSerial Output:\n";
       stopButton.removeAttribute("disabled");
       executeProgram(result.hex);
     } else {
@@ -286,7 +286,7 @@ function stopCode() {
 
   outPins.forEach((pin) => {
     (document.getElementById(pin.toString() + "out") as Element).textContent =
-      null;
+        null;
   });
   inPins.forEach((pin) => {
     (document.getElementById(pin.toString()) as Element).textContent = null;
@@ -334,8 +334,7 @@ function App() {
           >
             Editor
           </button>
-          <button id="run-button" className={"button success"} onClick={() =>{ setSerial(true)
-          compileAndRun()}}>
+          <button id="run-button" className={"button success"} onClick={() => { setSerial(true); compileAndRun(); }}>
             Run
           </button>
           <button id="stop-button" className={"button danger"} disabled>
