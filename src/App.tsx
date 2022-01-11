@@ -7,11 +7,7 @@ import AceEditor from "react-ace";
 //@ts-ignore
 import ScrollToBottom from "react-scroll-to-bottom";
 import "ace-builds/src-noconflict/mode-java";
-// import mode-<language> , this imports the style and colors for the selected language.
-import "ace-builds/src-noconflict/mode-javascript";
-// there are many themes to import, I liked monokai.
 import "ace-builds/src-noconflict/theme-monokai";
-// this is an optional import just improved the interaction.
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/ext-beautify";
 
@@ -361,10 +357,8 @@ function App() {
             value={CODE}
             onChange={(code) => (CODE = code)}
             width={"auto"}
-            placeholder="Placeholder Text"
-            mode="javascript"
+            mode="java"
             theme="monokai"
-            name="blah2"
             fontSize={14}
             className="editor"
             showPrintMargin={true}
