@@ -21,7 +21,7 @@ let CODE = `
 # define ls_pin A2 //left sensor
 # define rotation_pin A3 //rotation
 
-# define mapped_pin 4 //set to high if first run is complete
+# define mapped_pin 11 //set to high if first run is complete
 
 void setup() {
   Serial.begin(115200);
