@@ -254,7 +254,7 @@ async function compileAndRun() {
     compilerOutputText.textContent = result.stderr || result.stdout;
     if (result.hex) {
       compilerOutputText.textContent +=
-          "\nProgram running.\n\nSerial Output:\n";
+          "Program running.\n\nSerial Output:\n";
       stopButton.removeAttribute("disabled");
       executeProgram(result.hex);
     } else {
@@ -340,13 +340,13 @@ function App() {
           <button id="stop-button" className={"button danger"} disabled>
             Stop
           </button>
-          <div id="status-label" />
         </div>
         {serial ? (
           <div className="compiler-output">
             <div className={"serial-toolbar"}>
               <div>Serial Monitor</div>
             </div>
+            <div id="status-label" />
             <ScrollToBottom className={"scroll"}>
               <p id="compiler-output-text" />
             </ScrollToBottom>

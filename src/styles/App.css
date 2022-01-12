@@ -66,3 +66,18 @@ body {
 .editor {
   margin: 10px 0;
 }
+
+.status-label {
+  color: white;
+}
+
+.compiler-output {
+  color: white;
+  white-space: pre-line;
+}
+
+.scroll {
+  margin-top: 10px;
+  height: 400px;
+  border: 2px solid gray;
+}
