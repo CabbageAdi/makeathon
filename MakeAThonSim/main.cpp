@@ -333,6 +333,7 @@ void UpdateDrawFrame(void) {
             mapped = true;
         }
         else{
+            mapped = false;
             setPin(13, 1); //signal finished to website
         }
         x = xDefault;
