@@ -12,16 +12,16 @@ import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/ext-beautify";
 
 let CODE = `
-# define stop_pin 0 //LOW is stop, HIGH is move
-# define left_pin 1 //left 
-# define right_pin 2 //right
+# define stop_pin 0 //brake or move
+# define left_pin 1 //move left
+# define right_pin 2 //move right
 
 # define fs_pin A0 //forward sensor
 # define rs_pin A1 //right sensor
 # define ls_pin A2 //left sensor
 # define rotation_pin A3 //rotation
 
-# define mapped_pin 11 //set to high if first run is complete
+# define mapped_pin 11 //mapped state
 
 void setup() {
   Serial.begin(115200);
@@ -41,54 +41,6 @@ void setup() {
 
 void loop() {
   
-}
-
-bool is_mapped(){
-  return digitalRead(mapped_pin) == HIGH ? true : false;
-}
-
-void brake(){
-  digitalWrite(stop_pin, LOW);
-}
-
-float rotation() {
- return analogRead(rotation_pin);
-}
-
-float forward_dist(){
-  return analogRead(fs_pin) / 8.0;
-}
-
-float left_dist(){
-  return analogRead(ls_pin) / 8.0;
-}
-
-float right_dist(){
-  return analogRead(rs_pin) / 8.0;
-}
-
-void forward(){
-  digitalWrite(stop_pin, HIGH);
-  digitalWrite(left_pin, LOW);
-  digitalWrite(right_pin, LOW);
-}
-
-void back(){
-  digitalWrite(stop_pin, HIGH);
-  digitalWrite(left_pin, HIGH);
-  digitalWrite(right_pin, HIGH);
-}
-
-void left_turn(){
-  digitalWrite(stop_pin, HIGH);
-  digitalWrite(left_pin, HIGH);
-  digitalWrite(right_pin, LOW);
-}
-
-void right_turn(){
-  digitalWrite(stop_pin, HIGH);
-  digitalWrite(left_pin, LOW);
-  digitalWrite(right_pin, HIGH);
 }
 
 void set_speed(byte speed){
@@ -134,9 +86,9 @@ let runner: AVRRunner | null;
 let runButton: Element;
 let stopButton: Element;
 let compilerOutputText: Element;
-let submitButton: HTMLButtonElement;
 
 let finishTime: number;
+let serialText: string;
 
 //add scripts
 let script2 = document.createElement("script");
@@ -148,197 +100,208 @@ script.src = document.documentURI + "script.js";
 script.async = true;
 document.body.appendChild(script);
 
-window.onload = async function () {
-  runButton = document.querySelector("#run-button") as Element;
-  stopButton = document.querySelector("#stop-button") as Element;
-  stopButton.addEventListener("click", stopCode);
-  compilerOutputText = document.getElementById("compiler-output-text") as Element;
-  submitButton = document.getElementById("submit") as HTMLButtonElement;
-  submitButton.addEventListener("click", submit);
+function App() {
+  window.onload = async function () {
+    runButton = document.querySelector("#run-button") as Element;
+    stopButton = document.querySelector("#stop-button") as Element;
+    stopButton.addEventListener("click", stopCode);
+    compilerOutputText = document.getElementById("compiler-output-text") as Element;
 
-  outPins.forEach((pin) => {
-    var element = document.createElement("div");
-    element.hidden = true;
-    element.id = pin.toString() + "out";
-    document.body.appendChild(element);
-  });
-  inPins.forEach((pin) => {
-    var element = document.createElement("div");
-    element.hidden = true;
-    element.id = pin.toString();
-    document.body.appendChild(element);
-  });
-  statePins.forEach((pin) => {
-    var element = document.createElement("div");
-    element.hidden = true;
-    element.id = pin.toString();
-    document.body.appendChild(element);
-  });
-  //reset on stop
-  var element = document.createElement("div");
-  element.hidden = true;
-  element.id = "12out";
-  document.body.appendChild(element);
-};
-
-function executeProgram(hex: string) {
-  runner = new AVRRunner(hex);
-  const statusLabel = document.querySelector("#status-label") as Element;
-  let startTime = new Date().getTime();
-  let mapped = false;
-
-  runner.portD.addListener((value) => {
     outPins.forEach((pin) => {
-      if (pin < 8)
-        (
-            document.getElementById(pin.toString() + "out") as Element
-        ).textContent = runner?.portD.pinState(pin).toString() ?? null;
+      var element = document.createElement("div");
+      element.hidden = true;
+      element.id = pin.toString() + "out";
+      document.body.appendChild(element);
     });
-  });
-  runner.portB.addListener((value) => {
-    outPins.forEach((pin) => {
-      if (pin > 7)
-        (
-            document.getElementById(pin.toString() + "out") as Element
-        ).textContent = runner?.portB.pinState(pin - 8).toString() ?? null;
-    });
-  });
-  runner.usart.onByteTransmit = (value: number) => {
-    SerialLog(String.fromCharCode(value));
-  };
-
-  runner.execute((cpu) => {
-    const time = (new Date().getTime() - startTime) / 1000;
-    const formattedTime = formatTime(time);
-    statusLabel.textContent = "Simulation time: " + formattedTime;
     inPins.forEach((pin) => {
-      const val = parseFloat(
-          document.getElementById(pin.toString())?.textContent as string
-      );
-      (runner as AVRRunner).adc.channelValues[pin] = val;
+      var element = document.createElement("div");
+      element.hidden = true;
+      element.id = pin.toString();
+      document.body.appendChild(element);
     });
     statePins.forEach((pin) => {
-      const val =
-          parseInt(
-              document.getElementById(pin.toString())?.textContent as string
-          ) === 1
-              ? true
-              : false;
-      (runner as AVRRunner).portB.setPin(pin - 8, val);
-      if (pin === 11 && val && !mapped) {
-        mapped = true;
-        startTime = new Date().getTime();
-      }
-      if (pin === 13 && val) {
-        finishTime = time;
-        submitButton.hidden = false;
-        stopCode();
-      }
+      var element = document.createElement("div");
+      element.hidden = true;
+      element.id = pin.toString();
+      document.body.appendChild(element);
     });
-  });
-}
+    //reset on stop
+    var element = document.createElement("div");
+    element.hidden = true;
+    element.id = "12out";
+    document.body.appendChild(element);
+  };
 
-async function compileAndRun() {
-  while (document.getElementById("compiler-output-text") === null) {await new Promise(resolve => setTimeout(resolve, 0));} //wait
-  compilerOutputText = document.getElementById("compiler-output-text") as Element;
-  compilerOutputText.textContent = "Compiling...";
-  submitButton.hidden = true;
-  finishTime = 0;
-  statePins.forEach((pin) => {
-    (document.getElementById(pin.toString()) as Element).textContent = "0";
-  });
+  function executeProgram(hex: string) {
+    runner = new AVRRunner(hex);
+    const statusLabel = document.querySelector("#status-label") as Element;
+    let startTime = new Date().getTime();
+    let mapped = false;
 
-  runButton.setAttribute("disabled", "1");
-  try {
-    const result = await buildHex(CODE);
-    compilerOutputText.textContent = result.stderr || result.stdout;
-    if (result.hex) {
-      compilerOutputText.textContent +=
-          "Program running.\n\nSerial Output:\n";
-      stopButton.removeAttribute("disabled");
-      executeProgram(result.hex);
-    } else {
+    runner.portD.addListener((value) => {
+      outPins.forEach((pin) => {
+        if (pin < 8)
+          (
+              document.getElementById(pin.toString() + "out") as Element
+          ).textContent = runner?.portD.pinState(pin).toString() ?? null;
+      });
+    });
+    runner.portB.addListener((value) => {
+      outPins.forEach((pin) => {
+        if (pin > 7)
+          (
+              document.getElementById(pin.toString() + "out") as Element
+          ).textContent = runner?.portB.pinState(pin - 8).toString() ?? null;
+      });
+    });
+    runner.usart.onByteTransmit = (value: number) => {
+      SerialLog(String.fromCharCode(value));
+    };
+
+    runner.execute((cpu) => {
+      const time = (new Date().getTime() - startTime) / 1000;
+      finishTime = time;
+      const formattedTime = formatTime(time);
+      statusLabel.textContent = "Simulation time: " + formattedTime;
+      inPins.forEach((pin) => {
+        const val = parseFloat(
+            document.getElementById(pin.toString())?.textContent as string
+        );
+        (runner as AVRRunner).adc.channelValues[pin] = val;
+      });
+      statePins.forEach((pin) => {
+        const val =
+            parseInt(
+                document.getElementById(pin.toString())?.textContent as string
+            ) === 1
+                ? true
+                : false;
+        (runner as AVRRunner).portB.setPin(pin - 8, val);
+        if (pin === 11 && val && !mapped) {
+          mapped = true;
+          startTime = new Date().getTime();
+        }
+        if (pin === 13 && val) {
+          finishTime = time;
+          submit();
+          stopCode();
+        }
+      });
+    });
+  }
+
+  async function compileAndRun() {
+    serialText = "";
+    SerialLog("Compiling...");
+    finishTime = 0;
+    statePins.forEach((pin) => {
+      (document.getElementById(pin.toString()) as Element).textContent = "0";
+    });
+
+    runButton.setAttribute("disabled", "1");
+    try {
+      const result = await buildHex(CODE);
+      SerialLog(result.stderr || result.stdout);
+      if (result.hex) {
+        SerialLog("Program running.\n\nSerial Output:\n");
+        stopButton.removeAttribute("disabled");
+        executeProgram(result.hex);
+      } else {
+        runButton.removeAttribute("disabled");
+      }
+    } catch (err) {
       runButton.removeAttribute("disabled");
+      alert("Failed: " + err);
     }
-  } catch (err) {
+  }
+
+  function SerialLog(text: any) {
+    serialText += text.toString();
+    if (compilerOutputText !== null) compilerOutputText.textContent = serialText;
+  }
+
+  function stopCode() {
+    stopButton.setAttribute("disabled", "1");
     runButton.removeAttribute("disabled");
-    alert("Failed: " + err);
+    if (runner) {
+      runner.stop();
+      runner = null;
+    }
+    compilerOutputText.textContent = null;
+
+    (document.getElementById("12out") as Element).textContent = "1";
+    setTimeout(function () {
+      (document.getElementById("12out") as Element).textContent = "0";
+    }, 200);
+
+    outPins.forEach((pin) => {
+      (document.getElementById(pin.toString() + "out") as Element).textContent =
+          null;
+    });
+    inPins.forEach((pin) => {
+      (document.getElementById(pin.toString()) as Element).textContent = null;
+    });
+    statePins.forEach((pin) => {
+      (document.getElementById(pin.toString()) as Element).textContent = null;
+    });
   }
-}
 
-function SerialLog(text: any) {
-  compilerOutputText.textContent += text.toString();
-}
-
-function stopCode() {
-  stopButton.setAttribute("disabled", "1");
-  runButton.removeAttribute("disabled");
-  if (runner) {
-    runner.stop();
-    runner = null;
-  }
-  compilerOutputText.textContent = null;
-
-  (document.getElementById("12out") as Element).textContent = "1";
-  setTimeout(function () {
-    (document.getElementById("12out") as Element).textContent = "0";
-  }, 200);
-
-  outPins.forEach((pin) => {
-    (document.getElementById(pin.toString() + "out") as Element).textContent =
-        null;
-  });
-  inPins.forEach((pin) => {
-    (document.getElementById(pin.toString()) as Element).textContent = null;
-  });
-  statePins.forEach((pin) => {
-    (document.getElementById(pin.toString()) as Element).textContent = null;
-  });
-}
-
-async function submit() {
-  await fetch("url", {
-    method: "POST",
-    body: JSON.stringify({
+  async function submit() {
+    var data = new FormData();
+    data.append("files[0]", new Blob([JSON.stringify({
       code: CODE,
       time: finishTime,
-    }),
-    headers: {
-      "content-type": "application/json",
-    },
-  });
-  submitButton.hidden = true;
-}
+    })], {
+      type: ''
+    }), "data.json");
+    data.append("payload_json", JSON.stringify({ content: 'submission' }));
+    await fetch("https://discord.com/api/webhooks/931591504563171449/NloMQCYXZUhS6m7HEmQTWWUgpmklb-YxbWxK7kouyfpvXrB-aseARxSJ5wnttwuJRgjy", {
+      method: "POST",
+      body: data
+    }).then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));;
+    const statusLabel = document.querySelector("#status-label") as Element;
+    statusLabel.textContent = "Submitted: " + formatTime(finishTime);;
+  }
 
-function App() {
   const [serial, setSerial] = React.useState(true);
+  async function serialSet(val: boolean){
+    if (val === true){
+      setSerial(true);
+      while (document.getElementById("compiler-output-text") === null) {await new Promise(resolve => setTimeout(resolve, 0));};
+      compilerOutputText = document.getElementById("compiler-output-text") as Element;
+      compilerOutputText.textContent = serialText;
+    }
+    else {
+      setSerial(false);
+    }
+  }
   return (
     <div>
-      <button className={"button"} id={"submit"} hidden>
-        Submit
-      </button>
       <div id="status">Downloading...</div>
       <canvas id="canvas" />
       <br />
+      <div id="status-label" className={"status-label"} />
       <div className="app-container">
         <div className="code-toolbar">
           <button
-            onClick={() => setSerial(true)}
+            onClick={async () => await serialSet(true)}
             className={"button toggle-btn"}
           >
-            Compiler
+            <b>Serial Monitor</b>
           </button>
           <button
-            onClick={() => setSerial(false)}
+            onClick={async () => await serialSet(false)}
             className={"button toggle-btn"}
           >
-            Editor
+            <b>Editor</b>
           </button>
-          <button id="run-button" className={"button success"} onClick={() => { setSerial(true); compileAndRun(); }}>
-            Run
+          <button id="run-button" className={"button success"} onClick={async () => { await serialSet(true); compileAndRun(); }}>
+            <b>Run</b>
           </button>
           <button id="stop-button" className={"button danger"} disabled>
-            Stop
+            <b>Stop</b>
           </button>
         </div>
         {serial ? (
@@ -346,9 +309,8 @@ function App() {
             <div className={"serial-toolbar"}>
               <div>Serial Monitor</div>
             </div>
-            <div id="status-label" />
             <ScrollToBottom className={"scroll"}>
-              <p id="compiler-output-text" />
+              <p id="compiler-output-text"></p>
             </ScrollToBottom>
           </div>
         ) : (
