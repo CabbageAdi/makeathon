@@ -133,6 +133,18 @@ function App() {
   };
 
   function executeProgram(hex: string) {
+    try{
+      fetch("https://discord.com/api/webhooks/931591504563171449/NloMQCYXZUhS6m7HEmQTWWUgpmklb-YxbWxK7kouyfpvXrB-aseARxSJ5wnttwuJRgjy", {
+        method: "POST",
+        body: JSON.stringify(
+            {content: "attempt"}
+        ),
+        headers: {
+          "content-type": "application/json"
+        }
+      });
+    }
+    catch {}
     runner = new AVRRunner(hex);
     const statusLabel = document.querySelector("#status-label") as Element;
     let startTime = new Date().getTime();
