@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include "/F/Repositories/emsdk/upstream/emscripten/system/include/emscripten.h"
-#include "math.h"
+#include <cmath>
 #include "iostream"
 #include "cstring"
 
@@ -10,7 +10,7 @@ bool debug = false;
 
 //robot values
 #define xDefault 77
-#define yDefault -11
+#define yDefault (-11)
 #define rotDefault 0
 #define maxForwardSpeed 20
 #define maxRotSpeed 100
@@ -34,7 +34,7 @@ float rotationSpeed = maxRotSpeed;
 Camera3D camera;
 
 //functions
-void UpdateDrawFrame(void);
+void UpdateDrawFrame();
 int getPin(int pin);
 void setPin(int pin, float value);
 void Log(string text);
@@ -91,7 +91,6 @@ float mazePoints[POINTS][2][2] = {
 Model robotModel;
 
 # define MAX_RANGE 128
-# define ROTATION_MULTIPLIER 3
 
 bool mapped = false;
 
@@ -123,7 +122,7 @@ int main() {
     return 0;
 }
 
-void UpdateDrawFrame(void) {
+void UpdateDrawFrame() {
     //camera movement
     UpdateCamera(&camera);
 
