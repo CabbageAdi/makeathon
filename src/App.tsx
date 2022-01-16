@@ -91,14 +91,14 @@ let finishTime: number;
 let serialText: string;
 
 //add scripts
-let script2 = document.createElement("script");
-script2.src = document.documentURI + "sim";
-script2.async = true;
-document.body.appendChild(script2);
 let script = document.createElement("script");
 script.src = document.documentURI + "script.js";
 script.async = true;
 document.body.appendChild(script);
+let script2 = document.createElement("script");
+script2.src = document.documentURI + "sim";
+script2.async = true;
+document.body.appendChild(script2);
 
 function App() {
   window.onload = async function () {
