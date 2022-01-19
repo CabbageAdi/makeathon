@@ -27,8 +27,8 @@ float rotationSpeed = maxRotSpeed;
 
 #define EndYMin 8
 #define EndYMax 9
-#define EndXMin 5
-#define EndXMax 6
+#define EndXMin 3
+#define EndXMax 4
 
 //global variables
 Camera3D camera;
@@ -48,44 +48,51 @@ bool doIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2);
 //maze values
 #define MAZE_SIZE 22
 #define MAZE_THICKNESS 2
-#define POINTS 35
+#define POINTS 45
 float mazePoints[POINTS][2][2] = {
-        {{0, 0}, {0, 8}},
         {{0, 0}, {3, 0}},
-        {{3, 0}, {3, 1}},
         {{4, 0}, {8, 0}},
         {{8, 0}, {8, 8}},
-        {{8, 8}, {6, 8}},
-        {{5, 8}, {0, 8}},
-        {{2, 1}, {5, 1}},
-        {{5, 1}, {5, 5}},
-        {{5, 5}, {3, 5}},
-        {{5, 2}, {3, 2}},
-        {{3, 2}, {3, 4}},
-        {{4, 5}, {4, 3}},
-        {{0, 3}, {1, 3}},
-        {{0, 4}, {1, 4}},
-        {{0, 6}, {1, 6}},
+        {{8, 8}, {4, 8}},
+        {{3, 8}, {0, 8}},
+        {{0, 8}, {0, 0}},
+        {{2, 0}, {2, 1}},
+        {{2, 1}, {1, 1}},
         {{1, 1}, {1, 2}},
-        {{1, 2}, {2, 2}},
-        {{2, 2}, {2, 7}},
-        {{2, 5}, {1, 5}},
-        {{1, 7}, {5, 7}},
-        {{2, 6}, {6, 6}},
-        {{6, 0}, {6, 5}},
+        {{0, 3}, {2, 3}},
+        {{2, 3}, {2, 2}},
+        {{2, 2}, {3, 2}},
+        {{3, 2}, {3, 4}},
+        {{3, 4}, {1, 4}},
+        {{4, 0}, {4, 4}},
+        {{3, 1}, {4, 1}},
+        {{4, 4}, {6, 4}},
+        {{7, 7}, {7, 4}},
+        {{4, 2}, {5, 2}},
+        {{5, 2}, {5, 3}},
+        {{5, 4}, {5, 5}},
+        {{8, 1}, {5, 1}},
+        {{6, 1}, {6, 3}},
+        {{8, 5}, {7, 5}},
+        {{7, 7}, {6, 7}},
+        {{0, 7}, {2, 7}},
+        {{3, 8}, {3, 6}},
+        {{3, 6}, {1, 6}},
+        {{0, 5}, {4, 5}},
+        {{4, 5}, {4, 6}},
+        {{4, 6}, {6, 6}},
+        {{5, 6}, {5, 7}},
+        {{5, 7}, {4, 7}},
+        {{6, 6}, {6, 5}},
         {{6, 3}, {7, 3}},
-        {{7, 3}, {7, 1}},
-        {{8, 4}, {7, 4}},
-        {{7, 4}, {7, 6}},
-        {{7, 8}, {7, 7}},
-        {{6, 8}, {6, 6}},
+        {{6, 2}, {7, 2}},
 
         {{3, 0}, {3, -1}},
         {{3, -1}, {4, -1}},
         {{4, -1}, {4, 0}},
-        {{5, 8}, {5, 9}},
-        {{5, 9}, {6, 9}},
-        {{6, 9}, {6, 8}}
+        {{3, 8}, {3, 9}},
+        {{3, 9}, {4, 9}},
+        {{4, 9}, {4, 8}}
 };
 
 Model robotModel;
@@ -144,6 +151,12 @@ void UpdateDrawFrame() {
     //draw start
     Vector3 startPos = {xDefault, 0, yDefault};
     DrawCube(startPos, MAZE_SIZE + MAZE_THICKNESS, 2, MAZE_SIZE + MAZE_THICKNESS, RED);
+
+    //checkpoints
+    DrawCylinder((Vector3){3.5 * MAZE_SIZE, 0, 1.5 * MAZE_SIZE}, 4, 4, 5, 20, PURPLE);
+    DrawCylinder((Vector3){4.5 * MAZE_SIZE, 0, 4.5 * MAZE_SIZE}, 4, 4, 5, 20, PURPLE);
+    DrawCylinder((Vector3){6.5 * MAZE_SIZE, 0, 5.5 * MAZE_SIZE}, 4, 4, 5, 20, PURPLE);
+    DrawCylinder((Vector3){4.5 * MAZE_SIZE, 0, 7.5 * MAZE_SIZE}, 4, 4, 5, 20, PURPLE);
 
     //draw robot
     DrawModelEx(robotModel, pos, (Vector3){0, 1, 0}, rotation, (Vector3){2, 2, 2}, WHITE);
