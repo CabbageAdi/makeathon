@@ -133,18 +133,6 @@ function App() {
   };
 
   function executeProgram(hex: string) {
-    try{
-      fetch("https://discord.com/api/webhooks/931591504563171449/NloMQCYXZUhS6m7HEmQTWWUgpmklb-YxbWxK7kouyfpvXrB-aseARxSJ5wnttwuJRgjy", {
-        method: "POST",
-        body: JSON.stringify(
-            {content: "attempt"}
-        ),
-        headers: {
-          "content-type": "application/json"
-        }
-      });
-    }
-    catch {}
     runner = new AVRRunner(hex);
     const statusLabel = document.querySelector("#status-label") as Element;
     let startTime = new Date().getTime();
@@ -259,20 +247,6 @@ function App() {
   }
 
   async function submit() {
-    var data = new FormData();
-    data.append("files[0]", new Blob([JSON.stringify({
-      code: CODE,
-      time: finishTime,
-    })], {
-      type: ''
-    }), "data.json");
-    data.append("payload_json", JSON.stringify({ content: 'submission' }));
-    await fetch("https://discord.com/api/webhooks/931591504563171449/NloMQCYXZUhS6m7HEmQTWWUgpmklb-YxbWxK7kouyfpvXrB-aseARxSJ5wnttwuJRgjy", {
-      method: "POST",
-      body: data
-    }).then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));;
     const statusLabel = document.querySelector("#status-label") as Element;
     statusLabel.textContent = "Submitted: " + formatTime(finishTime);;
   }
