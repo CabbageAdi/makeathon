@@ -1,13 +1,13 @@
-Actual code in src/App.tsx, public/script.js and MakeAThonSim/main.c
+Actual code in src/App.tsx, public/script.js and MakeAThonSim/main.cpp
 
-## Todo
+## Using
+Deployed at https://makeathon.vercel.app
 
-- [ ] Remove hardcoded build tool paths (everything /F/ is for my local machine)
-- [ ] Entire simulator
-- [ ] Code writing and import
-- [ ] Figure out how to read pin data properly
-- [ ] Auth (someone else do this)
+Usage instructions: https://docs.google.com/document/u/3/d/e/2PACX-1vRULSqbt8q7WbVAAXxAIF2VIYuuISFDwZRBPD8RcgLyCfFVCgrmjY80uSbJxgX8h2X1lYOvGGgMH3ou/pub
 
-### Build Instructions (todo)
+Detailed description of the programming process and documentation coming eventually:tm:
 
-`npm start`: http://localhost:3000
+### Build Instructions
+The simulator is in c++ so building it is really weird, look up raylib web compilation and change hardcoded paths if you want to change the graphics part.
+
+To start the web server: `npm start`
